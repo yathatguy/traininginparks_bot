@@ -8,6 +8,7 @@ import telegram
 from telegram.contrib.botan import Botan
 import google_calendar
 import pymongo
+import os
 
 
 # set up Updater and Dispatcher
