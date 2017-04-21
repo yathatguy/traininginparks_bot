@@ -12,7 +12,7 @@ import pymongo
 def get_events(num):
     scopes = os.environ['SCOPES']
     # TODO: переделать на вызов dict для деплоя в heroku
-    credentials = ServiceAccountCredentials.from_json_keyfile_dict(os.environ['CALENDAR_ACCESS_FILE'], scopes)
+    credentials = ServiceAccountCredentials.from_json_keyfile_dict(json.loads(os.environ['CALENDAR_ACCESS_FILE']), scopes)
     http_auth = credentials.authorize(Http())
     service = build(serviceName='calendar', version='v3', http=http_auth)
     now = datetime.datetime.utcnow().isoformat() + '+03:00'
