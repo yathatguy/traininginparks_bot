@@ -33,7 +33,7 @@ def get_events(num):
 
 def dump_mongo(event):
     connection = pymongo.MongoClient(os.environ['MONGODB_URI'])
-    db = connection["traininginparks"]
+    db = connection["heroku_r261ww1k"]
     db.events.update({"id": event["id"]}, {"$set": {"id": event["id"],
                                                     "status": event["status"],
                                                     "kind": event["kind"],

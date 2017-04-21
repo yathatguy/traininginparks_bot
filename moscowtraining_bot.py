@@ -48,7 +48,7 @@ def start(bot, update):
 
 def attendees(bot, update):
     connection = pymongo.MongoClient(os.environ['MONGODB_URI'])
-    db = connection["traininginparks"]
+    db = connection["heroku_r261ww1k"]
     bot.sendMessage(chat_id=update.message.chat_id,
                     text="Список людей, записавшихся на предстоящие тренировки")
     for event in db.events.find():
@@ -96,7 +96,7 @@ def event_keyboard(bot, update, events):
 def train_button(bot, update):
     query = update.callback_query
     connection = pymongo.MongoClient(os.environ['MONGODB_URI'])
-    db = connection["traininginparks"]
+    db = connection["heroku_r261ww1k"]
     if db.events.find({"id": query.data,"attendee": query.message.chat.username}).count() == 0:
         event = db.events.find_one({"id": query.data})
         db.events.update({"id": query.data}, {"$push": {"attendee": query.message.chat.username}}, upsert=True)
