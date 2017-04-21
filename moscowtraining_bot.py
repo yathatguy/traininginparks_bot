@@ -47,7 +47,7 @@ def start(bot, update):
 
 
 def attendees(bot, update):
-    connection = pymongo.MongoClient()
+    connection = pymongo.MongoClient(os.environ['MONGODB_URI'])
     db = connection["traininginparks"]
     bot.sendMessage(chat_id=update.message.chat_id,
                     text="Список людей, записавшихся на предстоящие тренировки")
@@ -59,6 +59,7 @@ def attendees(bot, update):
         bot.sendMessage(chat_id=update.message.chat_id,
                         text="{}: {} ({}) - {}".format(event["start"]["dateTime"].split("T")[0], event["summary"], len(event["attendee"]), attendees_list))
         botan_track(update.message, update)
+    connection.close()
 
 
 def reply(bot, update, text):
@@ -94,7 +95,7 @@ def event_keyboard(bot, update, events):
 
 def train_button(bot, update):
     query = update.callback_query
-    connection = pymongo.MongoClient()
+    connection = pymongo.MongoClient(os.environ['MONGODB_URI'])
     db = connection["traininginparks"]
     if db.events.find({"id": query.data,"attendee": query.message.chat.username}).count() == 0:
         event = db.events.find_one({"id": query.data})
@@ -112,6 +113,7 @@ def train_button(bot, update):
             sad_loc(bot, query)
     else:
         bot.sendMessage(text="Ты уже записан(а) на эту тренировку", chat_id=query.message.chat_id, message_id=query.message.message_id)
+    connection.close()
 
 
 def dozen_loc(bot, update):

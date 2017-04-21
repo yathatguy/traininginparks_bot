@@ -32,7 +32,7 @@ def get_events(num):
 # TODO: выводить пользователю только события в будущем, не прошлые.
 
 def dump_mongo(event):
-    connection = pymongo.MongoClient()
+    connection = pymongo.MongoClient(os.environ['MONGODB_URI'])
     db = connection["traininginparks"]
     db.events.update({"id": event["id"]}, {"$set": {"id": event["id"],
                                                     "status": event["status"],
@@ -50,6 +50,7 @@ def dump_mongo(event):
                                                     "organizer": event["organizer"],
                                                     "creator": event["creator"],
                                                     }}, upsert=True)
+    connection.close()
 
 
 def main():
