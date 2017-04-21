@@ -6,7 +6,7 @@ from telegram.ext import Updater
 import logging
 from telegram.ext import CommandHandler, CallbackQueryHandler
 import telegram
-import botan
+from telegram.contrib.botan import Botan
 import google_calendar
 import pymongo
 
@@ -16,15 +16,17 @@ updater = Updater(token=config.TOKEN)
 updater.stop()
 dispatcher = updater.dispatcher
 
+# set up botan
+botan = Botan("config.BOTAN_API_KEY")
+
 # add logging
 logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO)
 
 
 def botan_track(message, update):
-    uid = message.from_user
     message_dict = message.to_dict()
     event_name = update.message.text
-    botan.track(config.BOTAN_API_KEY, uid, message_dict, event_name)
+    botan.track(message_dict, event_name)
 
 
 def start(bot, update):
@@ -50,6 +52,7 @@ def attendees(bot, update):
                     text="Список людей, записавшихся на предстоящие тренировки")
     for event in db.events.find():
         attendees_list = ''
+        # TODO: при первом проходе поля attendee не существует
         for attendee in event["attendee"]:
             attendees_list = attendees_list + ' @' + attendee
         bot.sendMessage(chat_id=update.message.chat_id,
@@ -58,6 +61,7 @@ def attendees(bot, update):
 
 
 def reply(bot, update, text):
+    # TODO: не найден chat_id
     bot.sendMessage(chat_id=update.message.chat_id, text=text)
     botan_track(update.message, update)
 

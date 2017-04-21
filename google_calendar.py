@@ -11,6 +11,7 @@ import pymongo
 
 def get_events(num):
     scopes = config.SCOPES
+    # TODO: переделать на вызов dict для деплоя в heroku
     credentials = ServiceAccountCredentials.from_json_keyfile_name(config.CALENDAR_ACCESS_FILE, scopes)
     http_auth = credentials.authorize(Http())
     service = build(serviceName='calendar', version='v3', http=http_auth)
@@ -25,6 +26,7 @@ def get_events(num):
             dump_mongo(google_event)
     return google_events
 
+# TODO: разнести обновение календаря и базы в разные вызовы.
 
 def dump_mongo(event):
     connection = pymongo.MongoClient()
