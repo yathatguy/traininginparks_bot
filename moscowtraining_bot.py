@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import unicode_literals, print_function
-import config
 from telegram.ext import Updater
 import logging
 from telegram.ext import CommandHandler, CallbackQueryHandler
