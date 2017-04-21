@@ -9,6 +9,7 @@ from telegram.contrib.botan import Botan
 import google_calendar
 import pymongo
 import os
+import json
 
 
 # set up Updater and Dispatcher
@@ -114,13 +115,15 @@ def train_button(bot, update):
 
 
 def dozen_loc(bot, update):
-    bot.send_venue(chat_id=update.message.chat_id, latitude=os.environ['DOZEN']["latitude"],
-                   longitude=os.environ['DOZEN']["longitude"], title=os.environ['DOZEN']["title"], address=os.environ['DOZEN']["address"])
+    dozen = json.loads(os.environ['DOZEN'])
+    bot.send_venue(chat_id=update.message.chat_id, latitude=dozen["latitude"],
+                   longitude=dozen["longitude"], title=dozen["title"], address=dozen["address"])
 
 
 def sad_loc(bot, update):
-    bot.send_venue(chat_id=update.message.chat_id, latitude=os.environ['SAD']["latitude"],
-                   longitude=os.environ['SAD']["longitude"], title=os.environ['SAD']["title"], address=os.environ['SAD']["address"])
+    sad = json.loads(os.environ['SAD'])
+    bot.send_venue(chat_id=update.message.chat_id, latitude=sad["latitude"],
+                   longitude=sad["longitude"], title=sad["title"], address=sad["address"])
 
 
 def main():
