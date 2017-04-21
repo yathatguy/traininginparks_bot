@@ -10,7 +10,7 @@ Currently supported functionalities:
 - Sign up for the train
 - List train's attendees
 
-## Deploymets
+## Deployments
 
 [Heroku](http://heroku.com) app `traininginparks` is set up to autodeploy from `master` branch.
 
