@@ -114,7 +114,7 @@ def train_button(bot, update):
 
 
 def dozen_loc(bot, update):
-    bot.send_venue(chat_id=update.message.chat_id, latitude=os.environ.['DOZEN']["latitude"],
+    bot.send_venue(chat_id=update.message.chat_id, latitude=os.environ['DOZEN']["latitude"],
                    longitude=os.environ['DOZEN']["longitude"], title=os.environ['DOZEN']["title"], address=os.environ['DOZEN']["address"])
 
 
