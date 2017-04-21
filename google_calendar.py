@@ -5,28 +5,29 @@ from oauth2client.service_account import ServiceAccountCredentials
 from httplib2 import Http
 from googleapiclient.discovery import build
 import datetime
-import config
+import os
 import pymongo
 
 
 def get_events(num):
-    scopes = config.SCOPES
+    scopes = os.environ['SCOPES']
     # TODO: переделать на вызов dict для деплоя в heroku
-    credentials = ServiceAccountCredentials.from_json_keyfile_name(config.CALENDAR_ACCESS_FILE, scopes)
+    credentials = ServiceAccountCredentials.from_json(os.environ['CALENDAR_ACCESS_FILE'], scopes)
     http_auth = credentials.authorize(Http())
     service = build(serviceName='calendar', version='v3', http=http_auth)
     now = datetime.datetime.utcnow().isoformat() + '+03:00'
-    eventsResult = service.events().list(calendarId=config.CALENDAR_ID, timeMin=now, maxResults=10, singleEvents=True, orderBy='startTime').execute()
+    eventsResult = service.events().list(calendarId=os.environ['CALENDAR_ID'], timeMin=now, maxResults=10, singleEvents=True, orderBy='startTime').execute()
     events = eventsResult.get('items', [])
     google_events = []
     if events:
         for event in events:
-            google_event = service.events().get(calendarId=config.CALENDAR_ID, eventId=event["id"]).execute()
+            google_event = service.events().get(calendarId=os.environ['CALENDAR_ID'], eventId=event["id"]).execute()
             google_events.append(google_event)
             dump_mongo(google_event)
     return google_events
 
 # TODO: разнести обновение календаря и базы в разные вызовы.
+# TODO: выводить пользователю только события в будущем, не прошлые.
 
 def dump_mongo(event):
     connection = pymongo.MongoClient()

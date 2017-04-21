@@ -12,12 +12,12 @@ import pymongo
 
 
 # set up Updater and Dispatcher
-updater = Updater(token=config.TOKEN)
+updater = Updater(token=os.environ['TOKEN'])
 updater.stop()
 dispatcher = updater.dispatcher
 
 # set up botan
-botan = Botan("config.BOTAN_API_KEY")
+botan = Botan(os.environ['BOTAN_API_KEY'])
 
 # add logging
 logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO)
@@ -34,7 +34,7 @@ def start(bot, update):
     Send welcome message to new users. 
     :return: N/A
     """
-    # bot.sendMessage(chat_id=update.message.chat_id, text=config.WELCOMETEXT)
+    # bot.sendMessage(chat_id=update.message.chat_id, text=os.environ['WELCOMETEXT'])
     botan_track(update.message, update)
     kb = [[telegram.KeyboardButton('/train')],
           [telegram.KeyboardButton('/attendees')]]
@@ -114,13 +114,13 @@ def train_button(bot, update):
 
 
 def dozen_loc(bot, update):
-    bot.send_venue(chat_id=update.message.chat_id, latitude=config.DOZEN["latitude"],
-                   longitude=config.DOZEN["longitude"], title=config.DOZEN["title"], address=config.DOZEN["address"])
+    bot.send_venue(chat_id=update.message.chat_id, latitude=os.environ.['DOZEN']["latitude"],
+                   longitude=os.environ['DOZEN']["longitude"], title=os.environ['DOZEN']["title"], address=os.environ['DOZEN']["address"])
 
 
 def sad_loc(bot, update):
-    bot.send_venue(chat_id=update.message.chat_id, latitude=config.SAD["latitude"],
-                   longitude=config.SAD["longitude"], title=config.SAD["title"], address=config.SAD["address"])
+    bot.send_venue(chat_id=update.message.chat_id, latitude=os.environ['SAD']["latitude"],
+                   longitude=os.environ['SAD']["longitude"], title=os.environ['SAD']["title"], address=os.environ['SAD']["address"])
 
 
 def main():
