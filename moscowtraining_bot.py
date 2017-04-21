@@ -12,6 +12,7 @@ import os
 
 
 # set up Updater and Dispatcher
+print('Token', os.environ['TOKEN'])
 updater = Updater(token=os.environ['TOKEN'])
 updater.stop()
 dispatcher = updater.dispatcher
