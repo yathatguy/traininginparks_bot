@@ -60,11 +60,11 @@ def attendees(bot, update):
                 attendees_list = attendees_list + ' @' + attendee
             bot.sendMessage(chat_id=update.message.chat_id,
                             text="{}: {} ({}) - {}".format(event["start"]["dateTime"].split("T")[0], event["summary"],
-                                                           len(event["attendee"]), 'пока никто не записался'))
+                                                           len(event["attendee"]), attendees_list))
         else:
             bot.sendMessage(chat_id=update.message.chat_id,
                             text="{}: {} ({}) - {}".format(event["start"]["dateTime"].split("T")[0], event["summary"],
-                                                           len(event["attendee"]), attendees_list))
+                                                           0, 'пока никто не записался'))
         botan_track(update.message, update)
     connection.close()
 
