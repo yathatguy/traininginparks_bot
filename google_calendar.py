@@ -47,8 +47,7 @@ def dump_mongo(event):
                                                     "start": event["start"],
                                                     "etag": event["etag"],
                                                     "organizer": event["organizer"],
-                                                    "creator": event["creator"],
-                                                    "attendee": []
+                                                    "creator": event["creator"]
                                                     }}, upsert=True)
     connection.close()
 

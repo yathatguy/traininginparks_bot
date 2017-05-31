@@ -53,12 +53,18 @@ def attendees(bot, update):
     bot.sendMessage(chat_id=update.message.chat_id,
                     text="Список людей, записавшихся на предстоящие тренировки")
     for event in db.events.find({'start.dateTime': {'$gt': (datetime.datetime.utcnow() + datetime.timedelta(hours=3)).isoformat()[:19] + '+03:00'}}):
-        attendees_list = ''
-        # TODO: при первом проходе поля attendee не существует
-        for attendee in event["attendee"]:
-            attendees_list = attendees_list + ' @' + attendee
-        bot.sendMessage(chat_id=update.message.chat_id,
-                        text="{}: {} ({}) - {}".format(event["start"]["dateTime"].split("T")[0], event["summary"], len(event["attendee"]), attendees_list))
+        if event["attendee"]:
+            attendees_list = ''
+            # TODO: при первом проходе поля attendee не существует
+            for attendee in event["attendee"]:
+                attendees_list = attendees_list + ' @' + attendee
+            bot.sendMessage(chat_id=update.message.chat_id,
+                            text="{}: {} ({}) - {}".format(event["start"]["dateTime"].split("T")[0], event["summary"],
+                                                           len(event["attendee"]), 'пока никто не записался'))
+        else:
+            bot.sendMessage(chat_id=update.message.chat_id,
+                            text="{}: {} ({}) - {}".format(event["start"]["dateTime"].split("T")[0], event["summary"],
+                                                           len(event["attendee"]), attendees_list))
         botan_track(update.message, update)
     connection.close()
 
