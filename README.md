@@ -16,7 +16,7 @@ Currently supported functionalities:
 
 [Heroku](http://heroku.com) app `traininginparks` is set up to autodeploy from `master` branch.
 
-The following evn variables are set up to run bot:
+The following env variables are set up to run bot:
 
 - `TOKEN`: Bot token from Telegram @BotFather
 - `BOTAN_API_KEY`: API key for [botan](http://appmetrica.yandex.com) stats posting

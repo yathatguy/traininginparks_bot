@@ -7,6 +7,7 @@ from telegram.ext import CommandHandler, CallbackQueryHandler
 import telegram
 from telegram.contrib.botan import Botan
 import google_calendar
+import datetime
 import pymongo
 import os
 import json
@@ -51,7 +52,7 @@ def attendees(bot, update):
     db = connection["heroku_r261ww1k"]
     bot.sendMessage(chat_id=update.message.chat_id,
                     text="Список людей, записавшихся на предстоящие тренировки")
-    for event in db.events.find():
+    for event in db.events.find({'start.dateTime': {'$ge': datetime.datetime.utcnow().isoformat() + '+03:00'}}):
         attendees_list = ''
         # TODO: при первом проходе поля attendee не существует
         for attendee in event["attendee"]:

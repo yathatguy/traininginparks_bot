@@ -13,7 +13,6 @@ import json
 def get_events(num):
     scope_list = []
     scope_list.append(os.environ['SCOPES'])
-    # TODO: переделать на вызов dict для деплоя в heroku
     credentials = ServiceAccountCredentials.from_json_keyfile_dict(json.loads(os.environ['GOOGLE_CREDENTIALS']), scope_list)
     http_auth = credentials.authorize(Http())
     service = build(serviceName='calendar', version='v3', http=http_auth)
@@ -30,6 +29,7 @@ def get_events(num):
 
 # TODO: разнести обновение календаря и базы в разные вызовы.
 # TODO: выводить пользователю только события в будущем, не прошлые.
+
 
 def dump_mongo(event):
     connection = pymongo.MongoClient(os.environ['MONGODB_URI'])
@@ -62,7 +62,6 @@ if __name__ == '__main__':
 
 
 # https://www.googleapis.com/calendar/v3/calendars/kaf5qkq0jeas32k56fop5k0ci0%40group.calendar.google.com/events?maxResults=5&orderBy=startTime&singleEvents=true&key={YOUR_API_KEY}
-
 # DOC: https://developers.google.com/api-client-library/python/auth/service-accounts
 # DOC: https://developers.google.com/resources/api-libraries/documentation/calendar/v3/python/latest/index.html
 
