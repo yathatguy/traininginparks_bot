@@ -53,8 +53,6 @@ def attendees(bot, update):
     bot.sendMessage(chat_id=update.message.chat_id,
                     text="Список людей, записавшихся на предстоящие тренировки")
     for event in db.events.find({'start.dateTime': {'$gt': (datetime.datetime.utcnow() + datetime.timedelta(hours=3)).isoformat()[:19] + '+03:00'}}):
-        print(datetime.datetime.utcnow().isoformat()[:19] + '+03:00')
-        print(event)
         attendees_list = ''
         # TODO: при первом проходе поля attendee не существует
         for attendee in event["attendee"]:

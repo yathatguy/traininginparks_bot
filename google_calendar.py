@@ -28,7 +28,6 @@ def get_events(num):
     return google_events
 
 # TODO: разнести обновение календаря и базы в разные вызовы.
-# TODO: выводить пользователю только события в будущем, не прошлые.
 
 
 def dump_mongo(event):
@@ -49,6 +48,7 @@ def dump_mongo(event):
                                                     "etag": event["etag"],
                                                     "organizer": event["organizer"],
                                                     "creator": event["creator"],
+                                                    "attendee": ''
                                                     }}, upsert=True)
     connection.close()
 
