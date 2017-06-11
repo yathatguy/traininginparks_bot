@@ -89,7 +89,6 @@ def reply(bot, update, text):
 
 def train(bot, update):
     events = get_events(3)
-    print("train_s: ", events)
     if events:
         reply(bot, update, text="Расписание следующих тренировок:")
         botan_track(update.message, update)
@@ -99,7 +98,7 @@ def train(bot, update):
                                                   event["start"]["dateTime"].split("T")[1][:5],
                                                   event["end"]["dateTime"].split("T")[1][:5]))
             botan_track(update.message, update)
-            print("train: " + event)
+            print("train: ", event)
         kb_markup = event_keyboard(bot, update, events)
         print("train: ", kb_markup)
         update.message.reply_text('Давай запишемся на одну из тренировок:', reply_markup=kb_markup)
