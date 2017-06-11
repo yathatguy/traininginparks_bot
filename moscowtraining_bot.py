@@ -99,6 +99,7 @@ def train(bot, update):
                                                   event["end"]["dateTime"].split("T")[1][:5]))
             botan_track(update.message, update)
             print("train: ", event)
+        events.rewind()
         print("train_events:", events)
         kb_markup = event_keyboard(bot, update, events)
         print("train: ", kb_markup)
@@ -109,7 +110,6 @@ def train(bot, update):
 
 
 def event_keyboard(bot, update, events):
-    print("event_keyboard:", len(events))
     kb = []
     for event in events:
         text = "{}: {}".format(event["summary"], event["start"]["dateTime"].split("T")[0])
@@ -117,6 +117,7 @@ def event_keyboard(bot, update, events):
         kb.append([item])
         print("event_keyboard: ", event)
     kb_markup = telegram.inlinekeyboardmarkup.InlineKeyboardMarkup(kb)
+    events.rewind()
     return kb_markup
 
 
