@@ -20,7 +20,7 @@ def dump_calendar(num):
     """
 
     # Set up variables for connection to Google Calendar API
-    scope_list = []
+    scope_list = list()
     scope_list.append(os.environ['SCOPES'])
     credentials = ServiceAccountCredentials.from_json_keyfile_dict(json.loads(os.environ['GOOGLE_CREDENTIALS']),
                                                                    scope_list)
@@ -73,11 +73,10 @@ def dump_mongodb(events):
                                                         }}, upsert=True)
 
     # Remove useless events
-    for event in events:
-        print(db.events.find_one({"id": event["id"]}))
-        if not db.events.find_one({"id": event["id"]}):
+    for event in db.events.find({}):
+        if event not in events:
+            print("remove:", event)
             db.events.delete_one({"id": event["id"]})
-            print("remove:", db.events.find_one({"id": event["id"]}))
 
     connection.close()
 
