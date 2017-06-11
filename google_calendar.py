@@ -74,8 +74,10 @@ def dump_mongodb(events):
 
     # Remove useless events
     for event in events:
+        print(db.events.find_one({"id": event["id"]}))
         if not db.events.find_one({"id": event["id"]}):
             db.events.delete_one({"id": event["id"]})
+            print("remove:", db.events.find_one({"id": event["id"]}))
 
     connection.close()
 
