@@ -73,7 +73,9 @@ def dump_mongodb(events):
                                                         }}, upsert=True)
 
     # Remove useless events
+    print(events)
     for event in db.events.find({}):
+        print(event)
         if event not in events:
             print("remove:", event)
             db.events.delete_one({"id": event["id"]})
