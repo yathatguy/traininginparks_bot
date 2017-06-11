@@ -73,11 +73,12 @@ def dump_mongodb(events):
                                                         }}, upsert=True)
 
     # Remove useless events
-    print(events)
-    for event in db.events.find({}):
-        print(event)
-        if event not in events:
-            print("remove:", event)
+    for event_db in db.events.find({}):
+        exist = False
+        for event in events:
+            if event_db["id"] == event["id"]:
+                exist = True
+        if not exist:
             db.events.delete_one({"id": event["id"]})
 
     connection.close()
