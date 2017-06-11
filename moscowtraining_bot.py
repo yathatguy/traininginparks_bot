@@ -109,7 +109,7 @@ def train(bot, update):
 
 
 def event_keyboard(bot, update, events):
-    print("event_keyboard:", events)
+    print("event_keyboard:", len(events))
     kb = []
     for event in events:
         text = "{}: {}".format(event["summary"], event["start"]["dateTime"].split("T")[0])
