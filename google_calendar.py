@@ -93,6 +93,7 @@ def get_events(num):
 
     # Get events
     events = db.events.find({}, limit=num).sort("start", pymongo.ASCENDING)
+    print events
     return events
 
 

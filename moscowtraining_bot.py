@@ -15,7 +15,7 @@ from telegram.ext import CommandHandler, CallbackQueryHandler
 from telegram.ext import Updater
 from google_calendar import dump_calendar, dump_mongodb, get_events
 
-# set up Updater and Dispatcher
+# Set up Updater and Dispatcher
 updater = Updater(token=os.environ['TOKEN'])
 updater.stop()
 dispatcher = updater.dispatcher
@@ -25,6 +25,9 @@ botan = Botan(os.environ['BOTAN_API_KEY'])
 
 # Add logging
 logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO)
+
+# Mute "file_cache is unavailable when using oauth2client >= 4.0.0" error in log
+logging.getLogger('googleapicliet.discovery_cache').setLevel(logging.ERROR)
 
 
 def botan_track(message, update):
@@ -57,28 +60,29 @@ def attendees(bot, update):
     db = connection["heroku_r261ww1k"]
     bot.sendMessage(chat_id=update.message.chat_id,
                     text="Список людей, записавшихся на предстоящие тренировки")
-    for event in db.events.find({'start.dateTime': {
-        '$gt': (datetime.datetime.utcnow() + datetime.timedelta(hours=3)).isoformat()[:19] + '+03:00'}}):
-        if "attendee" in event.keys():
-            attendees_list = ''
-            for attendee in event["attendee"]:
-                attendees_list = attendees_list + ' @' + attendee
-            bot.sendMessage(chat_id=update.message.chat_id,
-                            text="{}: {} ({}) - {}".format(event["start"]["dateTime"].split("T")[0], event["summary"],
-                                                           len(event["attendee"]), attendees_list))
-        else:
-            bot.sendMessage(chat_id=update.message.chat_id,
-                            text="{}: {} ({}) - {}".format(event["start"]["dateTime"].split("T")[0], event["summary"],
-                                                           0, 'пока никто не записался'))
+    events = db.events.find({'start.dateTime': {
+        '$gt': (datetime.datetime.utcnow() + datetime.timedelta(hours=3)).isoformat()[:19] + '+03:00'}})
+    if events:
+        for event in events:
+            if "attendee" in event.keys():
+                attendees_list = ''
+                for attendee in event["attendee"]:
+                    attendees_list = attendees_list + ' @' + attendee
+                bot.sendMessage(chat_id=update.message.chat_id,
+                                text="{}: {} ({}) - {}".format(event["start"]["dateTime"].split("T")[0], event["summary"],
+                                                               len(event["attendee"]), attendees_list))
+            else:
+                bot.sendMessage(chat_id=update.message.chat_id,
+                                text="{}: {} ({}) - {}".format(event["start"]["dateTime"].split("T")[0], event["summary"],
+                                                               0, 'пока никто не записался'))
         botan_track(update.message, update)
+    else:
+        bot.sendMessage(chat_id=update.message.chat_id, text="Нет трениировок, нет и записавшихся")
     connection.close()
 
 
 def reply(bot, update, text):
     # TODO: не найден chat_id
-    print(update)
-    print(update.message)
-    print(update.message.chat_id)
     bot.sendMessage(chat_id=update.message.chat_id, text=text)
     botan_track(update.message, update)
 
@@ -95,6 +99,7 @@ def train(bot, update):
                                                   event["end"]["dateTime"].split("T")[1][:5]))
             botan_track(update.message, update)
         kb_markup = event_keyboard(bot, update, events)
+        print kb_markup
         update.message.reply_text('Давай запишемся на одну из тренировок:', reply_markup=kb_markup)
     else:
         reply(bot, update, text="Пока тренировки не запланированы. Восстанавливаемся!")
