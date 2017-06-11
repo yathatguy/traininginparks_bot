@@ -26,9 +26,6 @@ botan = Botan(os.environ['BOTAN_API_KEY'])
 # Add logging
 logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO)
 
-# Mute "file_cache is unavailable when using oauth2client >= 4.0.0" error in log
-logging.getLogger('googleapicliet.discovery_cache').setLevel(logging.ERROR)
-
 
 def botan_track(message, update):
     message_dict = message.to_dict()

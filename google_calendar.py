@@ -28,7 +28,7 @@ def dump_calendar(num):
 
     # Set up http connection with API
     http_auth = credentials.authorize(Http())
-    service = build(serviceName='calendar', version='v3', http=http_auth)
+    service = build(serviceName='calendar', version='v3', http=http_auth, cache_discovery=False)
     now = datetime.datetime.utcnow().isoformat() + '+03:00'
 
     # Request events
