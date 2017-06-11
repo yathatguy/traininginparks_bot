@@ -89,6 +89,7 @@ def reply(bot, update, text):
 
 def train(bot, update):
     events = get_events(3)
+    print("train_s: ", events)
     if events:
         reply(bot, update, text="Расписание следующих тренировок:")
         botan_track(update.message, update)
