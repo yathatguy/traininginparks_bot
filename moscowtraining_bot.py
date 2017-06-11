@@ -99,7 +99,7 @@ def train(bot, update):
                                                   event["end"]["dateTime"].split("T")[1][:5]))
             botan_track(update.message, update)
         kb_markup = event_keyboard(bot, update, events)
-        print kb_markup
+        print(kb_markup)
         update.message.reply_text('Давай запишемся на одну из тренировок:', reply_markup=kb_markup)
     else:
         reply(bot, update, text="Пока тренировки не запланированы. Восстанавливаемся!")
