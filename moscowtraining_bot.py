@@ -53,8 +53,6 @@ def start(bot, update):
 
 
 def attendees(bot, update):
-    connection = pymongo.MongoClient(os.environ['MONGODB_URI'])
-    db = connection["heroku_r261ww1k"]
     bot.sendMessage(chat_id=update.message.chat_id,
                     text="Список людей, записавшихся на предстоящие тренировки")
     events = get_events(5)
@@ -74,7 +72,6 @@ def attendees(bot, update):
         botan_track(update.message, update)
     else:
         bot.sendMessage(chat_id=update.message.chat_id, text="Нет трениировок, нет и записавшихся")
-    connection.close()
 
 
 def reply(bot, update, text):
@@ -94,7 +91,6 @@ def train(bot, update):
                                                   event["start"]["dateTime"].split("T")[1][:5],
                                                   event["end"]["dateTime"].split("T")[1][:5]))
             botan_track(update.message, update)
-        events.rewind()
         kb_markup = event_keyboard(bot, update, events)
         update.message.reply_text('Давай запишемся на одну из тренировок:', reply_markup=kb_markup)
     else:
@@ -109,7 +105,6 @@ def event_keyboard(bot, update, events):
         item = telegram.InlineKeyboardButton(text=text, callback_data=event["id"])
         kb.append([item])
     kb_markup = telegram.inlinekeyboardmarkup.InlineKeyboardMarkup(kb)
-    events.rewind()
     return kb_markup
 
 

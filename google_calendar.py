@@ -89,11 +89,13 @@ def get_events(num):
     db = connection["heroku_r261ww1k"]
 
     # Get events
+    events_list = list()
     events = db.events.find({'start.dateTime': {
         '$gt': (datetime.datetime.utcnow() + datetime.timedelta(hours=3)).isoformat()[:19] + '+03:00'}},
         limit=num).sort("start", pymongo.ASCENDING)
-
-    return events
+    for event in events:
+        events_list.append(event)
+    return events_list
 
 
 def main():
