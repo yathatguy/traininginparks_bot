@@ -13,7 +13,6 @@ from oauth2client.service_account import ServiceAccountCredentials
 
 
 def dump_calendar(num):
-
     """
     Dump events from Google Calendar
     :param num: number of events to request from Google Calendar
@@ -47,7 +46,6 @@ def dump_calendar(num):
 
 
 def dump_mongodb(events):
-
     """
     Get list of dicts with events and update Mongo DB with actual information
     :param events: list of dicts with events
@@ -80,7 +78,6 @@ def dump_mongodb(events):
 
 
 def get_events(num):
-
     """
     Get list of dicts with events from Mongo DB
     :param num: number of event to request and possible return 
@@ -92,7 +89,9 @@ def get_events(num):
     db = connection["heroku_r261ww1k"]
 
     # Get events
-    events = db.events.find({}, limit=num).sort("start", pymongo.ASCENDING)
+    events = db.events.find({'start.dateTime': {
+        '$gt': (datetime.datetime.utcnow() + datetime.timedelta(hours=3)).isoformat()[:19] + '+03:00'}},
+        limit=num).sort("start", pymongo.ASCENDING)
 
     return events
 
