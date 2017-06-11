@@ -54,7 +54,7 @@ def start(bot, update):
 
 def attendees(bot, update):
     bot.sendMessage(chat_id=update.message.chat_id,
-                    text="Список людей, записавшихся на предстоящие тренировки")
+                    text="Список людей, записавшихся на предстоящие тренировки:")
     events = get_events(5)
     if events:
         for event in events:

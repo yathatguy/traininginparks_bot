@@ -42,9 +42,6 @@ def dump_calendar(num):
     return google_events
 
 
-# TODO: разнести обновение календаря и базы в разные вызовы.
-
-
 def dump_mongodb(events):
     """
     Get list of dicts with events and update Mongo DB with actual information
@@ -74,6 +71,14 @@ def dump_mongodb(events):
                                                         "organizer": event["organizer"],
                                                         "creator": event["creator"]
                                                         }}, upsert=True)
+    events.rewind()
+
+    # Remove useless events
+    for event in events:
+        if not db.events.find_one({"id": event["id"]}):
+            db.events.delete_one({"id": event["id"]})
+    events.rewind()
+
     connection.close()
 
 
