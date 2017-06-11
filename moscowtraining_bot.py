@@ -1,27 +1,29 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import unicode_literals, print_function
-from telegram.ext import Updater
+
+import datetime
+import json
 import logging
-from telegram.ext import CommandHandler, CallbackQueryHandler
+import os
+import time
+
+import pymongo
 import telegram
 from telegram.contrib.botan import Botan
-import google_calendar
-import datetime
-import pymongo
-import os
-import json
-
+from telegram.ext import CommandHandler, CallbackQueryHandler
+from telegram.ext import Updater
+from google_calendar import dump_calendar, dump_mongodb, get_events
 
 # set up Updater and Dispatcher
 updater = Updater(token=os.environ['TOKEN'])
 updater.stop()
 dispatcher = updater.dispatcher
 
-# set up botan
+# Set up Botan
 botan = Botan(os.environ['BOTAN_API_KEY'])
 
-# add logging
+# Add logging
 logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO)
 
 
@@ -32,11 +34,14 @@ def botan_track(message, update):
 
 
 def start(bot, update):
+
     """
     Send welcome message to new users. 
     :return: N/A
     """
+
     # bot.sendMessage(chat_id=update.message.chat_id, text=os.environ['WELCOMETEXT'])
+
     botan_track(update.message, update)
     kb = [[telegram.KeyboardButton('/train')],
           [telegram.KeyboardButton('/attendees')]]
@@ -52,10 +57,10 @@ def attendees(bot, update):
     db = connection["heroku_r261ww1k"]
     bot.sendMessage(chat_id=update.message.chat_id,
                     text="Список людей, записавшихся на предстоящие тренировки")
-    for event in db.events.find({'start.dateTime': {'$gt': (datetime.datetime.utcnow() + datetime.timedelta(hours=3)).isoformat()[:19] + '+03:00'}}):
+    for event in db.events.find({'start.dateTime': {
+        '$gt': (datetime.datetime.utcnow() + datetime.timedelta(hours=3)).isoformat()[:19] + '+03:00'}}):
         if "attendee" in event.keys():
             attendees_list = ''
-            # TODO: при первом проходе поля attendee не существует
             for attendee in event["attendee"]:
                 attendees_list = attendees_list + ' @' + attendee
             bot.sendMessage(chat_id=update.message.chat_id,
@@ -71,17 +76,23 @@ def attendees(bot, update):
 
 def reply(bot, update, text):
     # TODO: не найден chat_id
+    print(update)
+    print(update.message)
+    print(update.message.chat_id)
     bot.sendMessage(chat_id=update.message.chat_id, text=text)
     botan_track(update.message, update)
 
 
 def train(bot, update):
-    events = google_calendar.get_events(3)
+    events = get_events(3)
     if events:
         reply(bot, update, text="Расписание следующих тренировок:")
         botan_track(update.message, update)
         for event in events:
-            reply(bot, update, text="{}: {} с {} до {}".format(event["start"]["dateTime"].split("T")[0], event["summary"], event["start"]["dateTime"].split("T")[1][:5], event["end"]["dateTime"].split("T")[1][:5]))
+            reply(bot, update,
+                  text="{}: {} с {} до {}".format(event["start"]["dateTime"].split("T")[0], event["summary"],
+                                                  event["start"]["dateTime"].split("T")[1][:5],
+                                                  event["end"]["dateTime"].split("T")[1][:5]))
             botan_track(update.message, update)
         kb_markup = event_keyboard(bot, update, events)
         update.message.reply_text('Давай запишемся на одну из тренировок:', reply_markup=kb_markup)
@@ -104,7 +115,7 @@ def train_button(bot, update):
     query = update.callback_query
     connection = pymongo.MongoClient(os.environ['MONGODB_URI'])
     db = connection["heroku_r261ww1k"]
-    if db.events.find({"id": query.data,"attendee": query.message.chat.username}).count() == 0:
+    if db.events.find({"id": query.data, "attendee": query.message.chat.username}).count() == 0:
         event = db.events.find_one({"id": query.data})
         db.events.update({"id": query.data}, {"$push": {"attendee": query.message.chat.username}}, upsert=True)
         bot.sendMessage(text="Отлично, записались!", chat_id=query.message.chat_id, message_id=query.message.message_id)
@@ -119,7 +130,8 @@ def train_button(bot, update):
                             chat_id=query.message.chat_id, message_id=query.message.message_id)
             sad_loc(bot, query)
     else:
-        bot.sendMessage(text="Ты уже записан(а) на эту тренировку", chat_id=query.message.chat_id, message_id=query.message.message_id)
+        bot.sendMessage(text="Ты уже записан(а) на эту тренировку", chat_id=query.message.chat_id,
+                        message_id=query.message.message_id)
     connection.close()
 
 
@@ -136,6 +148,9 @@ def sad_loc(bot, update):
 
 
 def main():
+
+    # Set up handlers and buttons
+
     start_handler = CommandHandler("start", start)
     dispatcher.add_handler(start_handler)
 
@@ -147,7 +162,17 @@ def main():
 
     updater.dispatcher.add_handler(CallbackQueryHandler(train_button))
 
+    # Poll user actions
+
     updater.start_polling()
+
+    # Update 10 events from calendar every 60 secs
+
+    starttime = time.time()
+    while True:
+        events = dump_calendar(10)
+        dump_mongodb(events)
+        time.sleep(60.0 - ((time.time() - starttime) % 60.0))
 
 
 if __name__ == '__main__':
