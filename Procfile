@@ -1,1 +1,0 @@
-worker: python2 moscowtraining_bot.py
