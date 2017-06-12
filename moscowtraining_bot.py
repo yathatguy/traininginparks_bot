@@ -14,6 +14,7 @@ from telegram.ext import CommandHandler, CallbackQueryHandler
 from telegram.ext import Updater
 
 from google_calendar import dump_calendar, dump_mongodb, get_events
+from maps_api import get_coordinates
 
 # Set up Updater and Dispatcher
 
@@ -54,7 +55,7 @@ def start(bot, update):
     botan_track(update.message, update)
     kb = [[telegram.KeyboardButton('/train')],
           [telegram.KeyboardButton('/attendees')]]
-    kb_markup = telegram.ReplyKeyboardMarkup(kb)
+    kb_markup = telegram.ReplyKeyboardMarkup(kb, resize_keyboard=True)
     bot.send_message(chat_id=update.message.chat_id,
                      text="Добро пожаловать, атлет!",
                      reply_markup=kb_markup,
@@ -204,11 +205,17 @@ def sad_loc(bot, update):
     """
 
     sad = json.loads(os.environ['SAD'])
-    bot.send_venue(chat_id=update.message.chat_id, latitude=sad["latitude"],
-                   longitude=sad["longitude"], title=sad["title"], address=sad["address"])
+    coordinates = get_coordinates("Плющиха, 57")
+    bot.send_venue(chat_id=update.message.chat_id, latitude=coordinates["lat"],
+                   longitude=coordinates["lng"], title=sad["title"], address=sad["address"])
 
 
 def main():
+    """
+    Main function
+    :return: N/A
+    """
+
     # Set up handlers and buttons
 
     start_handler = CommandHandler("start", start)
