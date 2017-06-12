@@ -107,16 +107,15 @@ def reply(bot, update, text):
     botan_track(update.message, update)
 
 
-def train(bot, update, num):
+def train(bot, update):
     """
     Get a NUM of upcoming events and offer to attend any
     :param bot: telegram API object
     :param update: telegram API state
-    :param num: number of upcoming events to retieve
     :return: N/A
     """
 
-    events = get_events(num)
+    events = get_events(5)
     if events:
         reply(bot, update, text="Расписание следующих тренировок:")
         botan_track(update.message, update)
