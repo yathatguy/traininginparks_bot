@@ -20,25 +20,30 @@ def dump_calendar(num):
     """
 
     # Set up variables for connection to Google Calendar API
+
     scope_list = list()
     scope_list.append(os.environ['SCOPES'])
     credentials = ServiceAccountCredentials.from_json_keyfile_dict(json.loads(os.environ['GOOGLE_CREDENTIALS']),
                                                                    scope_list)
 
     # Set up http connection with API
+
     http_auth = credentials.authorize(Http())
     service = build(serviceName='calendar', version='v3', http=http_auth, cache_discovery=False)
     now = datetime.datetime.utcnow().isoformat() + '+03:00'
 
     # Request events
+
     eventsResult = service.events().list(calendarId=os.environ['CALENDAR_ID'], timeMin=now, maxResults=10,
                                          singleEvents=True, orderBy='startTime').execute()
     events = eventsResult.get('items', [])
+
     google_events = []
     if events:
         for event in events:
             google_event = service.events().get(calendarId=os.environ['CALENDAR_ID'], eventId=event["id"]).execute()
             google_events.append(google_event)
+
     return google_events
 
 
@@ -50,10 +55,12 @@ def dump_mongodb(events):
     """
 
     # Set up connection with Mongo DB
+
     connection = pymongo.MongoClient(os.environ['MONGODB_URI'])
     db = connection["heroku_r261ww1k"]
 
     # Insert or update events in Mongo DB
+
     for event in events:
         db.events.update({"id": event["id"]}, {"$set": {"id": event["id"],
                                                         "status": event["status"],
@@ -73,6 +80,7 @@ def dump_mongodb(events):
                                                         }}, upsert=True)
 
     # Remove useless events
+
     for event_db in db.events.find({}):
         exists = False
         for event in events:
@@ -92,20 +100,28 @@ def get_events(num):
     """
 
     # Set up connection with Mongo DB
+
     connection = pymongo.MongoClient(os.environ['MONGODB_URI'])
     db = connection["heroku_r261ww1k"]
 
     # Get events
+
     events_list = list()
     events = db.events.find({'start.dateTime': {
         '$gt': (datetime.datetime.utcnow() + datetime.timedelta(hours=3)).isoformat()[:19] + '+03:00'}},
         limit=num).sort("start", pymongo.ASCENDING)
     for event in events:
         events_list.append(event)
+
     return events_list
 
 
 def main():
+    """
+    Main function
+    :return: N/A
+    """
+
     pass
 
 
