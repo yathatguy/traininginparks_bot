@@ -13,7 +13,7 @@ def get_coordinates(address):
     params = {"address": address, "key": os.environ["MAPS_API"]}
     raw_coordinates = requests.get(BASE_URL, params).json()
     if raw_coordinates["results"]["status"] == "OK":
-        coordinates = raw_coordinates["results"]["geometry"]["location"]
+        coordinates = raw_coordinates["results"][0]["geometry"]["location"]
 
     return coordinates
 
