@@ -220,7 +220,7 @@ def main():
     start_handler = CommandHandler("start", start)
     dispatcher.add_handler(start_handler)
 
-    train_handler = CommandHandler("train", train(num=5))
+    train_handler = CommandHandler("train", train)
     dispatcher.add_handler(train_handler)
 
     train_handler = CommandHandler("attendees", attendees)
