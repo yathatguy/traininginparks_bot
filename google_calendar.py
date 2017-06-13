@@ -136,8 +136,11 @@ def get_events(name, num):
 
     events_date = db[name].find({'start.date': {'$gt': datetime.date.today().isoformat()}}, limit=num)
 
-    print("get_events: events_time", events_time)
-    print("get_events: events_date", events_date)
+    for event in events_time:
+        print("get_events: events_time", events_time)
+
+    for event in events_date:
+        print("get_events: events_date", events_date)
     #    for event in events:
     #        print("get_events:", event)
     #        events_list.append(event)
