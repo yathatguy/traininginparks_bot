@@ -12,6 +12,22 @@ from httplib2 import Http
 from oauth2client.service_account import ServiceAccountCredentials
 
 
+def setup_cal():
+    # Set up variables for connection to Google Calendar API
+
+    scope_list = list()
+    scope_list.append(os.environ['SCOPES'])
+    credentials = ServiceAccountCredentials.from_json_keyfile_dict(json.loads(os.environ['GOOGLE_CREDENTIALS']),
+                                                                   scope_list)
+
+    # Set up http connection with API
+
+    http_auth = credentials.authorize(Http())
+    service = build(serviceName='calendar', version='v3', http=http_auth, cache_discovery=False)
+
+    return service
+
+
 def dump_calendar(num):
     """
     Dump events from Google Calendar
@@ -19,27 +35,29 @@ def dump_calendar(num):
     :return: list of dicts with events
     """
 
-    # Set up variables for connection to Google Calendar API
-    scope_list = list()
-    scope_list.append(os.environ['SCOPES'])
-    credentials = ServiceAccountCredentials.from_json_keyfile_dict(json.loads(os.environ['GOOGLE_CREDENTIALS']),
-                                                                   scope_list)
-
-    # Set up http connection with API
-    http_auth = credentials.authorize(Http())
-    service = build(serviceName='calendar', version='v3', http=http_auth, cache_discovery=False)
-    now = datetime.datetime.utcnow().isoformat() + '+03:00'
-
     # Request events
-    eventsResult = service.events().list(calendarId=os.environ['CALENDAR_ID'], timeMin=now, maxResults=10,
+
+    service = setup_cal()
+
+    now = datetime.datetime.utcnow().isoformat() + '+03:00'
+    eventsResult = service.events().list(calendarId=os.environ['CALENDAR_ID'], timeMin=now, maxResults=num,
                                          singleEvents=True, orderBy='startTime').execute()
     events = eventsResult.get('items', [])
+
     google_events = []
     if events:
         for event in events:
             google_event = service.events().get(calendarId=os.environ['CALENDAR_ID'], eventId=event["id"]).execute()
             google_events.append(google_event)
+
     return google_events
+
+
+def dump_calendar_event(event):
+    service = setup_cal()
+    cal_event = service.events().get(calendarId=os.environ['CALENDAR_ID'], eventId=event["id"]).execute()
+
+    return cal_event
 
 
 def dump_mongodb(events):
@@ -50,10 +68,12 @@ def dump_mongodb(events):
     """
 
     # Set up connection with Mongo DB
+
     connection = pymongo.MongoClient(os.environ['MONGODB_URI'])
     db = connection["heroku_r261ww1k"]
 
     # Insert or update events in Mongo DB
+
     for event in events:
         db.events.update({"id": event["id"]}, {"$set": {"id": event["id"],
                                                         "status": event["status"],
@@ -73,6 +93,7 @@ def dump_mongodb(events):
                                                         }}, upsert=True)
 
     # Remove useless events
+
     for event_db in db.events.find({}):
         exists = False
         for event in events:
@@ -92,20 +113,28 @@ def get_events(num):
     """
 
     # Set up connection with Mongo DB
+
     connection = pymongo.MongoClient(os.environ['MONGODB_URI'])
     db = connection["heroku_r261ww1k"]
 
     # Get events
+
     events_list = list()
     events = db.events.find({'start.dateTime': {
         '$gt': (datetime.datetime.utcnow() + datetime.timedelta(hours=3)).isoformat()[:19] + '+03:00'}},
         limit=num).sort("start", pymongo.ASCENDING)
     for event in events:
         events_list.append(event)
+
     return events_list
 
 
 def main():
+    """
+    Main function
+    :return: N/A
+    """
+
     pass
 
 
@@ -116,3 +145,6 @@ if __name__ == '__main__':
 # https://www.googleapis.com/calendar/v3/calendars/kaf5qkq0jeas32k56fop5k0ci0%40group.calendar.google.com/events?maxResults=5&orderBy=startTime&singleEvents=true&key={YOUR_API_KEY}
 # DOC: https://developers.google.com/api-client-library/python/auth/service-accounts
 # DOC: https://developers.google.com/resources/api-libraries/documentation/calendar/v3/python/latest/index.html
+# DOC: http://pythonhosted.org/python-telegram-bot/
+# DOC = "https://python-telegram-bot.readthedocs.io"
+# https://maps.googleapis.com/maps/api/geocode/json?address=CrossfitDozen&key=AIzaSyDY9JokHXZsH5yanc-lWUsiexVtuCls27k

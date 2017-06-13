@@ -6,7 +6,12 @@ apiclient==1.0.3
 google-api-python-client==1.6.2
 httplib2==0.10.3
 oauth2client==4.0.0
-requests==2.13.0
 appdirs==1.4.3
 packaging==16.8
 pyparsing==2.2.0
+certifi==2017.4.17
+chardet==3.0.4
+googlemaps==2.5.0
+idna==2.5
+requests==2.17.3
+urllib3==1.21.1

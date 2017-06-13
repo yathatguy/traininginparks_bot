@@ -2,7 +2,6 @@
 
 from __future__ import unicode_literals, print_function
 
-import datetime
 import json
 import logging
 import os
@@ -13,28 +12,39 @@ import telegram
 from telegram.contrib.botan import Botan
 from telegram.ext import CommandHandler, CallbackQueryHandler
 from telegram.ext import Updater
-from google_calendar import dump_calendar, dump_mongodb, get_events
+
+from google_calendar import dump_calendar, dump_mongodb, get_events, dump_calendar_event
+from maps_api import get_coordinates
 
 # Set up Updater and Dispatcher
+
 updater = Updater(token=os.environ['TOKEN'])
 updater.stop()
 dispatcher = updater.dispatcher
 
 # Set up Botan
+
 botan = Botan(os.environ['BOTAN_API_KEY'])
 
 # Add logging
+
 logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO)
 
 
 def botan_track(message, update):
+    """
+    Call Bota API and send info
+    :param message: message that was send to User
+    :param update: telegram API state 
+    :return: N/A
+    """
+
     message_dict = message.to_dict()
     event_name = update.message.text
     botan.track(message_dict, event_name)
 
 
 def start(bot, update):
-
     """
     Send welcome message to new users. 
     :return: N/A
@@ -45,7 +55,7 @@ def start(bot, update):
     botan_track(update.message, update)
     kb = [[telegram.KeyboardButton('/train')],
           [telegram.KeyboardButton('/attendees')]]
-    kb_markup = telegram.ReplyKeyboardMarkup(kb)
+    kb_markup = telegram.ReplyKeyboardMarkup(kb, resize_keyboard=True)
     bot.send_message(chat_id=update.message.chat_id,
                      text="Добро пожаловать, атлет!",
                      reply_markup=kb_markup,
@@ -53,6 +63,13 @@ def start(bot, update):
 
 
 def attendees(bot, update):
+    """
+    Count number of attendees for each planned event and share with User
+    :param bot: telegram API object
+    :param update: telegram API state
+    :return: N/A
+    """
+
     bot.sendMessage(chat_id=update.message.chat_id,
                     text="Список людей, записавшихся на предстоящие тренировки:")
     events = get_events(5)
@@ -63,11 +80,13 @@ def attendees(bot, update):
                 for attendee in event["attendee"]:
                     attendees_list = attendees_list + ' @' + attendee
                 bot.sendMessage(chat_id=update.message.chat_id,
-                                text="{}: {} ({}) - {}".format(event["start"]["dateTime"].split("T")[0], event["summary"],
+                                text="{}: {} ({}) - {}".format(event["start"]["dateTime"].split("T")[0],
+                                                               event["summary"],
                                                                len(event["attendee"]), attendees_list))
             else:
                 bot.sendMessage(chat_id=update.message.chat_id,
-                                text="{}: {} ({}) - {}".format(event["start"]["dateTime"].split("T")[0], event["summary"],
+                                text="{}: {} ({}) - {}".format(event["start"]["dateTime"].split("T")[0],
+                                                               event["summary"],
                                                                0, 'пока никто не записался'))
         botan_track(update.message, update)
     else:
@@ -75,13 +94,28 @@ def attendees(bot, update):
 
 
 def reply(bot, update, text):
+    """
+    Reply to User and calls Botan API
+    :param bot: telegram API object
+    :param update: telegram API state
+    :param text: message that was send to User
+    :return: N/A
+    """
+
     # TODO: не найден chat_id
     bot.sendMessage(chat_id=update.message.chat_id, text=text)
     botan_track(update.message, update)
 
 
 def train(bot, update):
-    events = get_events(3)
+    """
+    Get a NUM of upcoming events and offer to attend any
+    :param bot: telegram API object
+    :param update: telegram API state
+    :return: N/A
+    """
+
+    events = get_events(5)
     if events:
         reply(bot, update, text="Расписание следующих тренировок:")
         botan_track(update.message, update)
@@ -99,6 +133,14 @@ def train(bot, update):
 
 
 def event_keyboard(bot, update, events):
+    """
+    Create keyboard markup that can be shown to User
+    :param bot: telegram API object
+    :param update: telegram API state
+    :param events: list of events
+    :return: keyboard markup that can be shown to User
+    """
+
     kb = []
     for event in events:
         text = "{}: {}".format(event["summary"], event["start"]["dateTime"].split("T")[0])
@@ -109,6 +151,14 @@ def event_keyboard(bot, update, events):
 
 
 def train_button(bot, update):
+    """
+    Get a User selected event from call back, add User to attendees list for the event
+    and gives User info about selected event (date, time, location)
+    :param bot: telegram API object
+    :param update: telegram API state
+    :return: N/A
+    """
+
     query = update.callback_query
     connection = pymongo.MongoClient(os.environ['MONGODB_URI'])
     db = connection["heroku_r261ww1k"]
@@ -116,16 +166,10 @@ def train_button(bot, update):
         event = db.events.find_one({"id": query.data})
         db.events.update({"id": query.data}, {"$push": {"attendee": query.message.chat.username}}, upsert=True)
         bot.sendMessage(text="Отлично, записались!", chat_id=query.message.chat_id, message_id=query.message.message_id)
-        if "dozen" in event["summary"].lower():
-            bot.sendMessage(text="Ждем тебя {} с {} по адресу:".format(event["start"]["dateTime"].split("T")[0],
-                                                                       event["start"]["dateTime"].split("T")[1][:5]),
-                            chat_id=query.message.chat_id, message_id=query.message.message_id)
-            dozen_loc(bot, query)
-        elif "нескучный" in event["summary"].lower():
-            bot.sendMessage(text="Ждем тебя {} с {} по адресу:".format(event["start"]["dateTime"].split("T")[0],
-                                                                       event["start"]["dateTime"].split("T")[1][:5]),
-                            chat_id=query.message.chat_id, message_id=query.message.message_id)
-            sad_loc(bot, query)
+        bot.sendMessage(text="Ждем тебя {} с {} по адресу:".format(event["start"]["dateTime"].split("T")[0],
+                                                                   event["start"]["dateTime"].split("T")[1][:5]),
+                        chat_id=query.message.chat_id, message_id=query.message.message_id)
+        event_loc(bot, query, event)
     else:
         bot.sendMessage(text="Ты уже записан(а) на эту тренировку", chat_id=query.message.chat_id,
                         message_id=query.message.message_id)
@@ -133,18 +177,44 @@ def train_button(bot, update):
 
 
 def dozen_loc(bot, update):
+    """
+    Send User CrossFit Dozen location on map
+    :param bot: telegram API object
+    :param update: telegram API state
+    :return: N/A
+    """
+
     dozen = json.loads(os.environ['DOZEN'])
     bot.send_venue(chat_id=update.message.chat_id, latitude=dozen["latitude"],
                    longitude=dozen["longitude"], title=dozen["title"], address=dozen["address"])
 
 
 def sad_loc(bot, update):
+    """
+    Send User Neskuchniy Sad location on map
+    :param bot: telegram API object
+    :param update: telegram API state
+    :return: N/A
+    """
+
     sad = json.loads(os.environ['SAD'])
-    bot.send_venue(chat_id=update.message.chat_id, latitude=sad["latitude"],
-                   longitude=sad["longitude"], title=sad["title"], address=sad["address"])
+    coordinates = get_coordinates("Плющиха, 57")
+    bot.send_venue(chat_id=update.message.chat_id, latitude=coordinates["lat"],
+                   longitude=coordinates["lng"], title=sad["title"], address=sad["address"])
+
+
+def event_loc(bot, update, event):
+    cal_event = dump_calendar_event(event)
+    coordinates = get_coordinates(cal_event["location"])
+    bot.send_venue(chat_id=update.message.chat_id, latitude=coordinates["lat"],
+                   longitude=coordinates["lng"], title=cal_event["summary"], address=cal_event["location"])
 
 
 def main():
+    """
+    Main function
+    :return: N/A
+    """
 
     # Set up handlers and buttons
 
