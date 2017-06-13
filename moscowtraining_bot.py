@@ -206,10 +206,11 @@ def calendar(bot, update):
 def feedback(bot, update):
     bot.send_message(chat_id=update.message.chat_id,
                      text="Оставьте свой отзыв о работе бота. Вместе мы сделаем его лучше!")
-    handle_feedback(bot, update)
+    handle_feedback(bot)
 
 
-def handle_feedback(bot, update):
+def handle_feedback(bot):
+    update = bot.getUpdates(limit=1, allowed_updates=["message"])[0]
     send_email(update.message.text)
     bot.send_message(chat_id=update.message.chat_id,
                      text="Спасибо, Ваш отзыв передан ответственным.")
