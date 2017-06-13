@@ -53,7 +53,8 @@ def start(bot, update):
 
     botan_track(update.message, update)
     kb = [[telegram.KeyboardButton('/train')],
-          [telegram.KeyboardButton('/attendees')]]
+          [telegram.KeyboardButton('/attendees')],
+          [telegram.KeyboardButton('/calendar')]]
     kb_markup = telegram.ReplyKeyboardMarkup(kb, resize_keyboard=True)
     bot.send_message(chat_id=update.message.chat_id,
                      text="Добро пожаловать, атлет!",
