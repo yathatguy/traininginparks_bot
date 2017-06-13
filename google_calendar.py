@@ -85,23 +85,23 @@ def dump_mongodb(name, events):
 
     for event in events:
         db[name].update({"id": event["id"]}, {"$set": {"id": event["id"],
-                                                        "status": event["status"],
-                                                        "kind": event["kind"],
-                                                        "end": event["end"],
-                                                        "created": event["created"],
-                                                        "iCalUID": event["iCalUID"],
-                                                        "reminders": event["reminders"],
+                                                       "status": event["status"],
+                                                       "kind": event["kind"],
+                                                       "end": event["end"],
+                                                       "created": event["created"],
+                                                       "iCalUID": event["iCalUID"],
+                                                       "reminders": event["reminders"],
                                                        "htmlLink": event["htmlLink"],
                                                        "sequence": event["sequence"],
                                                        "updated": event["updated"],
-                                                        "summary": event["summary"],
-                                                        "start": event["start"],
-                                                        "etag": event["etag"],
-                                                        "organizer": event["organizer"],
-                                                        "creator": event["creator"]
+                                                       "summary": event["summary"],
+                                                       "start": event["start"],
+                                                       "etag": event["etag"],
+                                                       "organizer": event["organizer"],
+                                                       "creator": event["creator"]
                                                        }}, upsert=True)
 
-    # Remove useless events
+    # Remove useless events and add startTime to 'date' events
 
     for event_db in db[name].find({}):
         exists = False
@@ -110,6 +110,8 @@ def dump_mongodb(name, events):
                 exists = True
         if not exists:
             db[name].delete_one({"id": event_db["id"]})
+        if "date" in event_db["start"].keys():
+            event_db["start"]["dateTime"] = event_db["start"]["date"] + "T00:00:00+03:00"
 
     connection.close()
 
