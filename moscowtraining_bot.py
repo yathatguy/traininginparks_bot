@@ -9,7 +9,7 @@ import time
 import pymongo
 import telegram
 from telegram.contrib.botan import Botan
-from telegram.ext import CommandHandler, CallbackQueryHandler
+from telegram.ext import CommandHandler, CallbackQueryHandler, MessageHandler
 from telegram.ext import Updater
 
 from google_calendar import dump_calendar, dump_mongodb, get_events, dump_calendar_event
@@ -52,14 +52,13 @@ def start(bot, update):
     # bot.sendMessage(chat_id=update.message.chat_id, text=os.environ['WELCOMETEXT'])
 
     botan_track(update.message, update)
-    kb = [[telegram.KeyboardButton('/train')],
-          [telegram.KeyboardButton('/attendees')],
-          [telegram.KeyboardButton('/calendar')]]
+    kb = [[telegram.KeyboardButton('/train'), telegram.KeyboardButton('/attendees')],
+          [telegram.KeyboardButton('/calendar')],
+          [telegram.KeyboardButton('/feedback')]]
     kb_markup = telegram.ReplyKeyboardMarkup(kb, resize_keyboard=True)
     bot.send_message(chat_id=update.message.chat_id,
                      text="Добро пожаловать, атлет!",
-                     reply_markup=kb_markup,
-                     resize_keyboard=True)
+                     reply_markup=kb_markup)
 
 
 def attendees(bot, update):
@@ -70,10 +69,10 @@ def attendees(bot, update):
     :return: N/A
     """
 
-    bot.sendMessage(chat_id=update.message.chat_id,
-                    text="Список людей, записавшихся на предстоящие тренировки:")
     events = get_events("trains", 5)
     if events:
+        bot.sendMessage(chat_id=update.message.chat_id,
+                        text="Список людей, записавшихся на предстоящие тренировки:")
         for event in events:
             if "attendee" in event.keys():
                 attendees_list = ''
@@ -90,7 +89,7 @@ def attendees(bot, update):
                                                                0, 'пока никто не записался'))
         botan_track(update.message, update)
     else:
-        bot.sendMessage(chat_id=update.message.chat_id, text="Нет трениировок, нет и записавшихся")
+        bot.sendMessage(chat_id=update.message.chat_id, text="Нет трениировок, нет и записавшихся.")
 
 
 def reply(bot, update, text):
@@ -203,6 +202,15 @@ def calendar(bot, update):
         botan_track(update.message, update)
 
 
+def feedback(bot, update):
+    handle_feedback()
+
+
+def handle_feedback(bot, update):
+    entities = update.message.get_entities()
+    bot.send_message(chat_id=update.message.chat_id, text=entities)
+
+
 def event_loc(bot, update, event):
     """
     Send location information to User about signed event
@@ -238,7 +246,11 @@ def main():
     calendar_handler = CommandHandler("calendar", calendar)
     dispatcher.add_handler(calendar_handler)
 
+    feedback_handler = CommandHandler("feedback", feedback)
+    dispatcher.add_handler(feedback_handler)
+
     updater.dispatcher.add_handler(CallbackQueryHandler(train_button))
+    updater.dispatcher.add_handler(MessageHandler(handle_feedback))
 
     # Poll user actions
 
