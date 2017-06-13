@@ -222,12 +222,12 @@ def feedback(bot, update):
     bot.send_message(chat_id=update.message.chat_id,
                      text="Оставьте свой отзыв о работе бота. Вместе мы сделаем его лучше!")
     print(update)
-    print(help(bot.message))
-    print(dir(bot.message))
+
     # bot.message.(chat_id=update.message.chat_id, text="Ваш отзыв принят, спасибо.")
     print(update)
     send_email(update.message.text)
-    bot.send_message(chat_id=update.message.chat_id, text="Спасибо, Ваш отзыв передан ответственным.")
+    bot.send_message(chat_id=update.message.chat_id, text="Спасибо, Ваш отзыв передан ответственным.",
+                     reply_markup={"1": "good", "2": "bad"})
     # TODO: переключить клавиатуру на текст
 
 
