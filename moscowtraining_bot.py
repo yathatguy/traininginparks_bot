@@ -14,6 +14,7 @@ from telegram.ext import Updater, Filters
 
 from google_calendar import dump_calendar, dump_mongodb, get_events, dump_calendar_event
 from maps_api import get_coordinates
+from sendemail import send_email
 
 # Set up Updater and Dispatcher
 
@@ -49,16 +50,24 @@ def start(bot, update):
     :return: N/A
     """
 
-    # bot.sendMessage(chat_id=update.message.chat_id, text=os.environ['WELCOMETEXT'])
+    kb_markup = keyboard()
+    bot.send_message(chat_id=update.message.chat_id,
+                     text="Добро пожаловать, атлет!",
+                     reply_markup=kb_markup)
 
-    botan_track(update.message, update)
+
+def keyboard():
+    """
+    Create keyboard markup object with buttons
+    :return: keyboard markup object
+    """
+
     kb = [[telegram.KeyboardButton('/train'), telegram.KeyboardButton('/attendees')],
           [telegram.KeyboardButton('/calendar')],
           [telegram.KeyboardButton('/feedback')]]
     kb_markup = telegram.ReplyKeyboardMarkup(kb, resize_keyboard=True)
-    bot.send_message(chat_id=update.message.chat_id,
-                     text="Добро пожаловать, атлет!",
-                     reply_markup=kb_markup)
+
+    return kb_markup
 
 
 def attendees(bot, update):
@@ -220,19 +229,17 @@ def event_loc(bot, update, event):
 def feedback(bot, update):
     bot.send_message(chat_id=update.message.chat_id,
                      text="Оставьте свой отзыв о работе бота. Вместе мы сделаем его лучше!")
-    print(update)
-
-    # bot.message.(chat_id=update.message.chat_id, text="Ваш отзыв принят, спасибо.")
-
-    # send_email(update.message.text)
-    bot.send_message(chat_id=update.message.chat_id, text="Ваш отзыв принят, спасибо.")
-
     # TODO: переключить клавиатуру на текст
+    # bot.message.(chat_id=update.message.chat_id, text="Ваш отзыв принят, спасибо.")
+    # send_email(update.message.text)
+    # bot.send_message(chat_id=update.message.chat_id, text="Ваш отзыв принят, спасибо.")
+
 
 
 def handle_feedback(bot, update):
-    print(update)
-    return update
+    send_email(update.message.text)
+    kb_markup = keyboard()
+    bot.send_message(chat_id=update.message.chat_id, text="Ваш отзыв принят, спасибо.", reply_markup=kb_markup)
 
 
 def main():
