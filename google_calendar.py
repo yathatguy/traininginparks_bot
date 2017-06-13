@@ -12,13 +12,7 @@ from httplib2 import Http
 from oauth2client.service_account import ServiceAccountCredentials
 
 
-def dump_calendar(num):
-    """
-    Dump events from Google Calendar
-    :param num: number of events to request from Google Calendar
-    :return: list of dicts with events
-    """
-
+def setup_cal():
     # Set up variables for connection to Google Calendar API
 
     scope_list = list()
@@ -30,11 +24,23 @@ def dump_calendar(num):
 
     http_auth = credentials.authorize(Http())
     service = build(serviceName='calendar', version='v3', http=http_auth, cache_discovery=False)
-    now = datetime.datetime.utcnow().isoformat() + '+03:00'
+
+    return service
+
+
+def dump_calendar(num):
+    """
+    Dump events from Google Calendar
+    :param num: number of events to request from Google Calendar
+    :return: list of dicts with events
+    """
 
     # Request events
 
-    eventsResult = service.events().list(calendarId=os.environ['CALENDAR_ID'], timeMin=now, maxResults=10,
+    service = setup_cal()
+
+    now = datetime.datetime.utcnow().isoformat() + '+03:00'
+    eventsResult = service.events().list(calendarId=os.environ['CALENDAR_ID'], timeMin=now, maxResults=num,
                                          singleEvents=True, orderBy='startTime').execute()
     events = eventsResult.get('items', [])
 
@@ -45,6 +51,13 @@ def dump_calendar(num):
             google_events.append(google_event)
 
     return google_events
+
+
+def dump_calendar_event(event):
+    service = setup_cal()
+    cal_event = service.events().get(calendarId=os.environ['CALENDAR_ID'], eventId=event["id"]).execute()
+
+    return cal_event
 
 
 def dump_mongodb(events):
@@ -133,4 +146,5 @@ if __name__ == '__main__':
 # DOC: https://developers.google.com/api-client-library/python/auth/service-accounts
 # DOC: https://developers.google.com/resources/api-libraries/documentation/calendar/v3/python/latest/index.html
 # DOC: http://pythonhosted.org/python-telegram-bot/
-    # DOC = "https://python-telegram-bot.readthedocs.io"
+# DOC = "https://python-telegram-bot.readthedocs.io"
+# https://maps.googleapis.com/maps/api/geocode/json?address=CrossfitDozen&key=AIzaSyDY9JokHXZsH5yanc-lWUsiexVtuCls27k

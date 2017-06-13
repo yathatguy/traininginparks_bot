@@ -13,7 +13,7 @@ from telegram.contrib.botan import Botan
 from telegram.ext import CommandHandler, CallbackQueryHandler
 from telegram.ext import Updater
 
-from google_calendar import dump_calendar, dump_mongodb, get_events
+from google_calendar import dump_calendar, dump_mongodb, get_events, dump_calendar_event
 from maps_api import get_coordinates
 
 # Set up Updater and Dispatcher
@@ -166,16 +166,10 @@ def train_button(bot, update):
         event = db.events.find_one({"id": query.data})
         db.events.update({"id": query.data}, {"$push": {"attendee": query.message.chat.username}}, upsert=True)
         bot.sendMessage(text="Отлично, записались!", chat_id=query.message.chat_id, message_id=query.message.message_id)
-        if "dozen" in event["summary"].lower():
-            bot.sendMessage(text="Ждем тебя {} с {} по адресу:".format(event["start"]["dateTime"].split("T")[0],
-                                                                       event["start"]["dateTime"].split("T")[1][:5]),
-                            chat_id=query.message.chat_id, message_id=query.message.message_id)
-            dozen_loc(bot, query)
-        elif "нескучный" in event["summary"].lower():
-            bot.sendMessage(text="Ждем тебя {} с {} по адресу:".format(event["start"]["dateTime"].split("T")[0],
-                                                                       event["start"]["dateTime"].split("T")[1][:5]),
-                            chat_id=query.message.chat_id, message_id=query.message.message_id)
-            sad_loc(bot, query)
+        bot.sendMessage(text="Ждем тебя {} с {} по адресу:".format(event["start"]["dateTime"].split("T")[0],
+                                                                   event["start"]["dateTime"].split("T")[1][:5]),
+                        chat_id=query.message.chat_id, message_id=query.message.message_id)
+        event_loc(bot, query, event)
     else:
         bot.sendMessage(text="Ты уже записан(а) на эту тренировку", chat_id=query.message.chat_id,
                         message_id=query.message.message_id)
@@ -207,6 +201,13 @@ def sad_loc(bot, update):
     coordinates = get_coordinates("Плющиха, 57")
     bot.send_venue(chat_id=update.message.chat_id, latitude=coordinates["lat"],
                    longitude=coordinates["lng"], title=sad["title"], address=sad["address"])
+
+
+def event_loc(bot, update, event):
+    cal_event = dump_calendar_event(event)
+    coordinates = get_coordinates(event["location"])
+    bot.send_venue(chat_id=update.message.chat_id, latitude=coordinates["lat"],
+                   longitude=coordinates["lng"], title=cal_event["summary"], address=cal_event["location"])
 
 
 def main():
