@@ -9,7 +9,7 @@ import time
 import pymongo
 import telegram
 from telegram.contrib.botan import Botan
-from telegram.ext import CommandHandler, CallbackQueryHandler
+from telegram.ext import CommandHandler, ChosenInlineResultHandler
 from telegram.ext import Updater
 
 from google_calendar import dump_calendar, dump_mongodb, get_events, dump_calendar_event
@@ -203,19 +203,6 @@ def calendar(bot, update):
         botan_track(update.message, update)
 
 
-def feedback(bot, update):
-    bot.send_message(chat_id=update.message.chat_id,
-                     text="Оставьте свой отзыв о работе бота. Вместе мы сделаем его лучше!")
-    update = bot.get_updates(allowed_updates=["message"])
-    print(update)
-    bot.send_message(chat_id=update.message.chat_id,
-                     text="Ваш отзыв принят, спасибо.")
-    send_email(update.message.text)
-    bot.send_message(chat_id=update.message.chat_id,
-                     text="Спасибо, Ваш отзыв передан ответственным.")
-    # TODO: переключить клавиатуру на текст
-
-
 def event_loc(bot, update, event):
     """
     Send location information to User about signed event
@@ -229,6 +216,17 @@ def event_loc(bot, update, event):
     coordinates = get_coordinates(cal_event["location"])
     bot.send_venue(chat_id=update.message.chat_id, latitude=coordinates["lat"],
                    longitude=coordinates["lng"], title=cal_event["summary"], address=cal_event["location"])
+
+
+def feedback(bot, update):
+    bot.send_message(chat_id=update.message.chat_id,
+                     text="Оставьте свой отзыв о работе бота. Вместе мы сделаем его лучше!")
+    print(update)
+    bot.message.reply_text(chat_id=update.message.chat_id, text="Ваш отзыв принят, спасибо.")
+    print(update)
+    send_email(update.message.text)
+    bot.send_message(chat_id=update.message.chat_id, text="Спасибо, Ваш отзыв передан ответственным.")
+    # TODO: переключить клавиатуру на текст
 
 
 def main():
@@ -254,7 +252,7 @@ def main():
     feedback_handler = CommandHandler("feedback", feedback)
     dispatcher.add_handler(feedback_handler)
 
-    updater.dispatcher.add_handler(CallbackQueryHandler(train_button))
+    updater.dispatcher.add_handler(ChosenInlineResultHandler(train_button))
     # updater.dispatcher.add_handler(MessageHandler(filters=Filters.text, callback=handle_feedback))
 
     # Poll user actions
