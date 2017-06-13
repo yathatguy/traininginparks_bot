@@ -12,6 +12,7 @@ from telegram.contrib.botan import Botan
 from telegram.ext import CommandHandler, CallbackQueryHandler, MessageHandler, Filters
 from telegram.ext import Updater
 
+from email import send_email
 from google_calendar import dump_calendar, dump_mongodb, get_events, dump_calendar_event
 from maps_api import get_coordinates
 
@@ -204,14 +205,12 @@ def calendar(bot, update):
 
 def feedback(bot, update):
     bot.send_message(chat_id=update.message.chat_id,
-                     text="Оставьте свой отзыв о работе бота. Вместе мы сделаем его лучше!",
-                     keyboard={"one_time_keyboard": True})
-
+                     text="Оставьте свой отзыв о работе бота. Вместе мы сделаем его лучше!")
     handle_feedback(bot, update)
 
 
 def handle_feedback(bot, update):
-    bot.send_message(chat_id=update.message.chat_id, text=update.message.text)
+    send_email(update.message.text)
     bot.send_message(chat_id=update.message.chat_id,
                      text="Спасибо, Ваш отзыв передан ответственным.")
 
