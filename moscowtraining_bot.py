@@ -185,10 +185,14 @@ def calendar(bot, update):
         reply(bot, update, text="Список предстоящих событий:")
         botan_track(update.message, update)
         for event in events:
-            reply(bot, update,
-                  text="{}: {} с {} до {}".format(event["start"]["dateTime"].split("T")[0], event["summary"],
-                                                  event["start"]["dateTime"].split("T")[1][:5],
-                                                  event["end"]["dateTime"].split("T")[1][:5]))
+            if "date" in event["end"].keys():
+                reply(bot, update,
+                      text="{}: {}".format(event["start"]["dateTime"].split("T")[0], event["summary"]))
+            else:
+                reply(bot, update,
+                      text="{}: {} с {} до {}".format(event["start"]["dateTime"].split("T")[0], event["summary"],
+                                                      event["start"]["dateTime"].split("T")[1][:5],
+                                                      event["end"]["dateTime"].split("T")[1][:5]))
             botan_track(update.message, update)
     else:
         reply(bot, update, text="В календаре пока нет запланированных событий.")
