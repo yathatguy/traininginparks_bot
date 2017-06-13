@@ -180,6 +180,7 @@ def calendar(bot, update):
     bot.sendMessage(chat_id=update.message.chat_id, text="Список предстоящих событий:")
 
     events = get_events("events", 20)
+    print(events)
     if events:
         reply(bot, update, text="Список предстоящих событий:")
         botan_track(update.message, update)
