@@ -203,7 +203,7 @@ def calendar(bot, update):
 
 
 def feedback(bot, update):
-    handle_feedback()
+    handle_feedback(bot, update)
 
 
 def handle_feedback(bot, update):
