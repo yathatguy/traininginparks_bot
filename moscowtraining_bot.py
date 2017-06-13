@@ -205,7 +205,7 @@ def sad_loc(bot, update):
 
 def event_loc(bot, update, event):
     cal_event = dump_calendar_event(event)
-    coordinates = get_coordinates(event["location"])
+    coordinates = get_coordinates(cal_event["location"])
     bot.send_venue(chat_id=update.message.chat_id, latitude=coordinates["lat"],
                    longitude=coordinates["lng"], title=cal_event["summary"], address=cal_event["location"])
 
