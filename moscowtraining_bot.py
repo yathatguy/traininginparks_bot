@@ -109,7 +109,7 @@ def reply(bot, update, text):
 
 def train(bot, update):
     """
-    Get a NUM of upcoming events and offer to attend any
+    Get a NUM of upcoming trains and offer to attend any
     :param bot: telegram API object
     :param update: telegram API state
     :return: N/A
@@ -177,8 +177,14 @@ def train_button(bot, update):
 
 
 def calendar(bot, update):
+    """
+    Get upcomgin events and list to User
+    :param bot: telegram API object
+    :param update: telegram API state
+    :return: N/A
+    """
+
     events = get_events("events", 20)
-    print("calendar", len(events), events)
     if events:
         reply(bot, update, text="Список предстоящих событий:")
         botan_track(update.message, update)
@@ -198,7 +204,6 @@ def calendar(bot, update):
 
 
 def event_loc(bot, update, event):
-
     """
     Send location information to User about signed event
     :param bot: telegram API object
@@ -257,6 +262,7 @@ def main():
         dump_mongodb("events", events)
 
         # Sleep to 60 secs
+
         time.sleep(60.0 - ((time.time() - starttime) % 60.0))
 
 

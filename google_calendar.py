@@ -13,6 +13,11 @@ from oauth2client.service_account import ServiceAccountCredentials
 
 
 def setup_cal():
+    """
+    Set up variables for connection to Google Calendar API 
+    :return: service - connection to Google Calendar API 
+    """
+
     # Set up variables for connection to Google Calendar API
 
     scope_list = list()
@@ -29,7 +34,6 @@ def setup_cal():
 
 
 def dump_calendar(calendar, num):
-
     """
     Dump events from Google Calendar
     :param calendar: Google Calendar ID
@@ -150,7 +154,6 @@ def get_events(name, num):
         limit=num).sort("start", pymongo.ASCENDING)
     for event in events:
         events_list.append(event)
-    print("get_events", events_list)
 
     return events_list
 
