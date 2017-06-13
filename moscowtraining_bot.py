@@ -210,7 +210,7 @@ def feedback(bot, update):
 
 
 def handle_feedback(bot):
-    update = bot.getUpdates(limit=1, allowed_updates=["message"])[0]
+    update = bot.getUpdates(limit=1, allowed_updates=["message"])
     send_email(update.message.text)
     bot.send_message(chat_id=update.message.chat_id,
                      text="Спасибо, Ваш отзыв передан ответственным.")
