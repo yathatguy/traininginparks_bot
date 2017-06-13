@@ -28,7 +28,7 @@ botan = Botan(os.environ['BOTAN_API_KEY'])
 
 # Add logging
 
-logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO)
+logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.WARNING)
 
 
 def botan_track(message, update):
