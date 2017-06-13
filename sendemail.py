@@ -8,6 +8,7 @@ import smtplib
 def send_email(text):
     # Create message
 
+    msg = dict()
     msg["Subject"] = "TrainingInParks Bot Feedback"
     msg["From"] = "traininginparks_bot"
     msg["To"] = "thatguy@yandex.ru"
@@ -16,7 +17,7 @@ def send_email(text):
     # Send the message via our own SMTP server, but don't include the envelope header.
 
     server = smtplib.SMTP("localhost")
-    server.sendmail(msg["From"], msg["To"], msg.as_string())
+    server.sendmail(msg["From"], msg["To"], msg["Text"])
     server.quit()
 
 
