@@ -9,7 +9,7 @@ import time
 import pymongo
 import telegram
 from telegram.contrib.botan import Botan
-from telegram.ext import CommandHandler, ChosenInlineResultHandler, MessageHandler
+from telegram.ext import CommandHandler, ChosenInlineResultHandler, MessageHandler,
 from telegram.ext import Updater, Filters
 
 from google_calendar import dump_calendar, dump_mongodb, get_events, dump_calendar_event
@@ -227,9 +227,9 @@ def event_loc(bot, update, event):
 
 
 def feedback(bot, update):
-    bot.send_message(chat_id=update.message.chat_id,
-                     text="Оставьте свой отзыв о работе бота. Вместе мы сделаем его лучше!",
-                     reply_markup=None)
+    bot.send_message(telegram.ReplyKeyboardRemove,
+                     chat_id=update.message.chat_id,
+                     text="Оставьте свой отзыв о работе бота. Вместе мы сделаем его лучше!")
     # TODO: переключить клавиатуру на текст
     # bot.message.(chat_id=update.message.chat_id, text="Ваш отзыв принят, спасибо.")
     # send_email(update.message.text)
