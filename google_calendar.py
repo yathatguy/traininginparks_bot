@@ -104,16 +104,24 @@ def dump_mongodb(name, events):
     # Remove useless events and add startTime to 'date' events
 
     for event_db in db[name].find({}):
+
+        # Enriching with 'date' and 'dateTime' for 'start' key
+
+        print("date" in event_db["start"].keys(), event_db)
+        if "date" in event_db["start"].keys():
+            event_db["start"]["dateTime"] = event_db["start"]["date"] + "T00:00:00+03:00"
+            print(event_db["start"]["date"], event_db["start"]["dateTime"], event_db)
+        else:
+            event_db["start"]["date"] = event_db["start"]["dateTime"].split("T")[0]
+
+        # Remove removed events
+
         exists = False
         for event in events:
             if event_db["id"] == event["id"]:
                 exists = True
         if not exists:
             db[name].delete_one({"id": event_db["id"]})
-        print("date" in event_db["start"].keys(), event_db)
-        if "date" in event_db["start"].keys():
-            event_db["start"]["dateTime"] = event_db["start"]["date"] + "T00:00:00+03:00"
-            print(event_db["start"]["date"], event_db["start"]["dateTime"], event_db)
 
     connection.close()
 
@@ -134,20 +142,11 @@ def get_events(name, num):
 
     events_list = list()
 
-    events_time = db[name].find({'start.dateTime': {
+    events = db[name].find({'start.dateTime': {
         '$gt': (datetime.datetime.utcnow() + datetime.timedelta(hours=3)).isoformat()[:19] + '+03:00'}},
-        limit=num)
-
-    events_date = db[name].find({'start.date': {'$gt': datetime.date.today().isoformat()}}, limit=num)
-
-    for event in events_time:
-        print("get_events: events_time", event)
-
-    for event in events_date:
-        print("get_events: events_date", event)
-    #    for event in events:
-    #        print("get_events:", event)
-    #        events_list.append(event)
+        limit=num).sort("start", pymongo.ASCENDING)
+    for event in events:
+        events_list.append(event)
 
     return events_list
 
