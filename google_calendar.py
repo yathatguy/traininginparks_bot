@@ -84,6 +84,18 @@ def dump_mongodb(name, events):
     # Insert or update events in Mongo DB
 
     for event in events:
+
+        # Enriching with 'date' and 'dateTime' for 'start' key
+
+        if "date" in event["start"].keys():
+            event["start"]["dateTime"] = event["start"]["date"] + "T00:00:00+03:00"
+        #            db[name].update({"id": event["id"]}, {"$set": {"start.dateTime": event["start"]["dateTime"]}}, upsert=True)
+        else:
+            event["start"]["date"] = event["start"]["dateTime"].split("T")[0]
+        #            db[name].update({"id": event["id"]}, {"$set": {"start.date": event["start"]["date"]}}, upsert=True)
+
+        # Update MongoDB
+
         db[name].update({"id": event["id"]}, {"$set": {"id": event["id"],
                                                        "status": event["status"],
                                                        "kind": event["kind"],
@@ -101,19 +113,9 @@ def dump_mongodb(name, events):
                                                        "creator": event["creator"]
                                                        }}, upsert=True)
 
-    # Remove useless events and add startTime to 'date' events
+    # Remove useless events
 
     for event_db in db[name].find({}):
-
-        # Enriching with 'date' and 'dateTime' for 'start' key
-
-        if "date" in event_db["start"].keys():
-            event_db["start"]["dateTime"] = event_db["start"]["date"] + "T00:00:00+03:00"
-            db[name].update({"id": event["id"]}, {"$set": {"start.dateTime": event_db["start"]["dateTime"]}},
-                            upsert=True)
-        else:
-            event_db["start"]["date"] = event_db["start"]["dateTime"].split("T")[0]
-            db[name].update({"id": event["id"]}, {"$set": {"start.date": event_db["start"]["date"]}}, upsert=True)
 
         # Remove removed events
 
