@@ -110,10 +110,10 @@ def dump_mongodb(name, events):
                 exists = True
         if not exists:
             db[name].delete_one({"id": event_db["id"]})
-        print("date" in event_db["start"].keys())
+        print("date" in event_db["start"].keys(), event_db)
         if "date" in event_db["start"].keys():
             event_db["start"]["dateTime"] = event_db["start"]["date"] + "T00:00:00+03:00"
-        print(event_db["start"]["date"], event_db["start"]["dateTime"])
+            print(event_db["start"]["date"], event_db["start"]["dateTime"], event_db)
 
     connection.close()
 
