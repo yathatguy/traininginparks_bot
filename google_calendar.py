@@ -107,12 +107,13 @@ def dump_mongodb(name, events):
 
         # Enriching with 'date' and 'dateTime' for 'start' key
 
-        print("date" in event_db["start"].keys(), event_db)
         if "date" in event_db["start"].keys():
             event_db["start"]["dateTime"] = event_db["start"]["date"] + "T00:00:00+03:00"
-            print(event_db["start"]["date"], event_db["start"]["dateTime"], event_db)
+            db[name].update({"id": event["id"]}, {"$set": {"start.dateTime": event_db["start"]["dateTime"]}},
+                            upsert=True)
         else:
             event_db["start"]["date"] = event_db["start"]["dateTime"].split("T")[0]
+            db[name].update({"id": event["id"]}, {"$set": {"start.date": event_db["start"]["date"]}}, upsert=True)
 
         # Remove removed events
 
