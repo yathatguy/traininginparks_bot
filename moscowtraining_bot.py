@@ -228,7 +228,8 @@ def event_loc(bot, update, event):
 
 def feedback(bot, update):
     bot.send_message(chat_id=update.message.chat_id,
-                     text="Оставьте свой отзыв о работе бота. Вместе мы сделаем его лучше!")
+                     text="Оставьте свой отзыв о работе бота. Вместе мы сделаем его лучше!",
+                     reply_markup={})
     # TODO: переключить клавиатуру на текст
     # bot.message.(chat_id=update.message.chat_id, text="Ваш отзыв принят, спасибо.")
     # send_email(update.message.text)
