@@ -222,7 +222,9 @@ def feedback(bot, update):
     bot.send_message(chat_id=update.message.chat_id,
                      text="Оставьте свой отзыв о работе бота. Вместе мы сделаем его лучше!")
     print(update)
-    bot.message.reply_text(chat_id=update.message.chat_id, text="Ваш отзыв принят, спасибо.")
+    print(help(bot.message))
+    print(dir(bot.message))
+    # bot.message.(chat_id=update.message.chat_id, text="Ваш отзыв принят, спасибо.")
     print(update)
     send_email(update.message.text)
     bot.send_message(chat_id=update.message.chat_id, text="Спасибо, Ваш отзыв передан ответственным.")
