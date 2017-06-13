@@ -19,9 +19,11 @@ def send_email(text):
 
     # Send the message via our own SMTP server, but don't include the envelope header.
 
-    server = smtplib.SMTP_SSL("smtp.yandex.ru")
-    server.sendmail(me, [you], msg.as_string())
+    server = smtplib.SMTP_SSL("smtp.yandex.ru", 465)
+    server.ehlo()
+    server.connect("smtp.yandex.ru", 465)
     server.login(me, os.environ["YANDEX_PASSWORD"])
+    server.sendmail(me, [you], msg.as_string())
     server.quit()
 
 
