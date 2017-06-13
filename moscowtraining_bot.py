@@ -206,6 +206,11 @@ def calendar(bot, update):
 def feedback(bot, update):
     bot.send_message(chat_id=update.message.chat_id,
                      text="Оставьте свой отзыв о работе бота. Вместе мы сделаем его лучше!")
+    update = bot.getUpdates(limit=1, allowed_updates=["message"])
+    print(update)
+    send_email(update.message.text)
+    bot.send_message(chat_id=update.message.chat_id,
+                     text="Спасибо, Ваш отзыв передан ответственным.")
     # TODO: переключить клавиатуру на текст
 
 
