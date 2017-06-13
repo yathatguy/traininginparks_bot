@@ -14,7 +14,6 @@ from telegram.ext import Updater
 
 from google_calendar import dump_calendar, dump_mongodb, get_events, dump_calendar_event
 from maps_api import get_coordinates
-from sendemail import send_email
 
 # Set up Updater and Dispatcher
 
@@ -222,12 +221,11 @@ def feedback(bot, update):
     bot.send_message(chat_id=update.message.chat_id,
                      text="Оставьте свой отзыв о работе бота. Вместе мы сделаем его лучше!")
     print(update)
-
+    query = update.callback_query
     # bot.message.(chat_id=update.message.chat_id, text="Ваш отзыв принят, спасибо.")
-    print(update)
-    send_email(update.message.text)
-    bot.send_message(chat_id=update.message.chat_id, text="Спасибо, Ваш отзыв передан ответственным.",
-                     reply_markup={"1": "good", "2": "bad"})
+    print(query)
+    # send_email(update.message.text)
+    bot.send_message(chat_id=update.message.chat_id, text="Спасибо, Ваш отзыв передан ответственным.")
     # TODO: переключить клавиатуру на текст
 
 
