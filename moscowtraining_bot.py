@@ -9,7 +9,7 @@ import time
 import pymongo
 import telegram
 from telegram.contrib.botan import Botan
-from telegram.ext import CommandHandler, CallbackQueryHandler, MessageHandler
+from telegram.ext import CommandHandler, CallbackQueryHandler, MessageHandler, Filters
 from telegram.ext import Updater
 
 from google_calendar import dump_calendar, dump_mongodb, get_events, dump_calendar_event
@@ -250,7 +250,7 @@ def main():
     dispatcher.add_handler(feedback_handler)
 
     updater.dispatcher.add_handler(CallbackQueryHandler(train_button))
-    updater.dispatcher.add_handler(MessageHandler(handle_feedback))
+    updater.dispatcher.add_handler(MessageHandler(filters=Filters.text, callback=handle_feedback))
 
     # Poll user actions
 
