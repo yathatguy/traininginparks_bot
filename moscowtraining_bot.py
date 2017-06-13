@@ -12,9 +12,9 @@ from telegram.contrib.botan import Botan
 from telegram.ext import CommandHandler, CallbackQueryHandler, MessageHandler, Filters
 from telegram.ext import Updater
 
-from email import send_email
 from google_calendar import dump_calendar, dump_mongodb, get_events, dump_calendar_event
 from maps_api import get_coordinates
+from sendemail import send_email
 
 # Set up Updater and Dispatcher
 
