@@ -9,7 +9,7 @@ import time
 import pymongo
 import telegram
 from telegram.contrib.botan import Botan
-from telegram.ext import CommandHandler, CallbackQueryHandler, MessageHandler, Filters
+from telegram.ext import CommandHandler, CallbackQueryHandler
 from telegram.ext import Updater
 
 from google_calendar import dump_calendar, dump_mongodb, get_events, dump_calendar_event
@@ -206,18 +206,14 @@ def calendar(bot, update):
 def feedback(bot, update):
     bot.send_message(chat_id=update.message.chat_id,
                      text="Оставьте свой отзыв о работе бота. Вместе мы сделаем его лучше!")
-    update = bot.getUpdates(limit=1, allowed_updates=["message"])
+    update = bot.get_updates(allowed_updates=["message"])
     print(update)
+    bot.send_message(chat_id=update.message.chat_id,
+                     text="Ваш отзыв принят, спасибо.")
     send_email(update.message.text)
     bot.send_message(chat_id=update.message.chat_id,
                      text="Спасибо, Ваш отзыв передан ответственным.")
     # TODO: переключить клавиатуру на текст
-
-
-def handle_feedback(bot):
-    send_email(update.message.text)
-    bot.send_message(chat_id=update.message.chat_id,
-                     text="Спасибо, Ваш отзыв передан ответственным.")
 
 
 def event_loc(bot, update, event):
@@ -259,7 +255,7 @@ def main():
     dispatcher.add_handler(feedback_handler)
 
     updater.dispatcher.add_handler(CallbackQueryHandler(train_button))
-    updater.dispatcher.add_handler(MessageHandler(filters=Filters.text, callback=handle_feedback))
+    # updater.dispatcher.add_handler(MessageHandler(filters=Filters.text, callback=handle_feedback))
 
     # Poll user actions
 
