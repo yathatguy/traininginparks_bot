@@ -2,7 +2,6 @@
 
 from __future__ import unicode_literals, print_function
 
-import json
 import logging
 import os
 import time
@@ -54,7 +53,8 @@ def start(bot, update):
 
     botan_track(update.message, update)
     kb = [[telegram.KeyboardButton('/train')],
-          [telegram.KeyboardButton('/attendees')]]
+          [telegram.KeyboardButton('/attendees')],
+          [telegram.KeyboardButton('/calendar')]]
     kb_markup = telegram.ReplyKeyboardMarkup(kb, resize_keyboard=True)
     bot.send_message(chat_id=update.message.chat_id,
                      text="Добро пожаловать, атлет!",
@@ -72,7 +72,7 @@ def attendees(bot, update):
 
     bot.sendMessage(chat_id=update.message.chat_id,
                     text="Список людей, записавшихся на предстоящие тренировки:")
-    events = get_events(5)
+    events = get_events("trains", 5)
     if events:
         for event in events:
             if "attendee" in event.keys():
@@ -109,13 +109,13 @@ def reply(bot, update, text):
 
 def train(bot, update):
     """
-    Get a NUM of upcoming events and offer to attend any
+    Get a NUM of upcoming trains and offer to attend any
     :param bot: telegram API object
     :param update: telegram API state
     :return: N/A
     """
 
-    events = get_events(5)
+    events = get_events("trains", 5)
     if events:
         reply(bot, update, text="Расписание следующих тренировок:")
         botan_track(update.message, update)
@@ -176,35 +176,43 @@ def train_button(bot, update):
     connection.close()
 
 
-def dozen_loc(bot, update):
+def calendar(bot, update):
     """
-    Send User CrossFit Dozen location on map
+    Get upcomgin events and list to User
     :param bot: telegram API object
     :param update: telegram API state
     :return: N/A
     """
 
-    dozen = json.loads(os.environ['DOZEN'])
-    bot.send_venue(chat_id=update.message.chat_id, latitude=dozen["latitude"],
-                   longitude=dozen["longitude"], title=dozen["title"], address=dozen["address"])
-
-
-def sad_loc(bot, update):
-    """
-    Send User Neskuchniy Sad location on map
-    :param bot: telegram API object
-    :param update: telegram API state
-    :return: N/A
-    """
-
-    sad = json.loads(os.environ['SAD'])
-    coordinates = get_coordinates("Плющиха, 57")
-    bot.send_venue(chat_id=update.message.chat_id, latitude=coordinates["lat"],
-                   longitude=coordinates["lng"], title=sad["title"], address=sad["address"])
+    events = get_events("events", 20)
+    if events:
+        reply(bot, update, text="Список предстоящих событий:")
+        botan_track(update.message, update)
+        for event in events:
+            if "date" in event["end"].keys():
+                reply(bot, update,
+                      text="{}: {}".format(event["start"]["dateTime"].split("T")[0], event["summary"]))
+            else:
+                reply(bot, update,
+                      text="{}: {} с {} до {}".format(event["start"]["dateTime"].split("T")[0], event["summary"],
+                                                      event["start"]["dateTime"].split("T")[1][:5],
+                                                      event["end"]["dateTime"].split("T")[1][:5]))
+            botan_track(update.message, update)
+    else:
+        reply(bot, update, text="В календаре пока нет запланированных событий.")
+        botan_track(update.message, update)
 
 
 def event_loc(bot, update, event):
-    cal_event = dump_calendar_event(event)
+    """
+    Send location information to User about signed event
+    :param bot: telegram API object
+    :param update:  telegram API state
+    :param event: event from MongoDB
+    :return: N/A
+    """
+
+    cal_event = dump_calendar_event(event["organizer"]["email"], event)
     coordinates = get_coordinates(cal_event["location"])
     bot.send_venue(chat_id=update.message.chat_id, latitude=coordinates["lat"],
                    longitude=coordinates["lng"], title=cal_event["summary"], address=cal_event["location"])
@@ -227,18 +235,34 @@ def main():
     train_handler = CommandHandler("attendees", attendees)
     dispatcher.add_handler(train_handler)
 
+    calendar_handler = CommandHandler("calendar", calendar)
+    dispatcher.add_handler(calendar_handler)
+
     updater.dispatcher.add_handler(CallbackQueryHandler(train_button))
 
     # Poll user actions
 
     updater.start_polling()
 
-    # Update 10 events from calendar every 60 secs
+    # Update trains and events from calendar every 60 secs
 
     starttime = time.time()
+
     while True:
-        events = dump_calendar(10)
-        dump_mongodb(events)
+        # Dump events from Google Calendar and update MongoDB
+
+        train_calendar = os.environ['TRAIN_CALENDAR_ID']
+        trains = dump_calendar(train_calendar, 10)
+        dump_mongodb("trains", trains)
+
+        # Dump events from Google Calendar and update MongoDB
+
+        events_calendar = os.environ['EVENTS_CALENDAR_ID']
+        events = dump_calendar(events_calendar, 30)
+        dump_mongodb("events", events)
+
+        # Sleep to 60 secs
+
         time.sleep(60.0 - ((time.time() - starttime) % 60.0))
 
 

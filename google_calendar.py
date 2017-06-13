@@ -13,6 +13,11 @@ from oauth2client.service_account import ServiceAccountCredentials
 
 
 def setup_cal():
+    """
+    Set up variables for connection to Google Calendar API 
+    :return: service - connection to Google Calendar API 
+    """
+
     # Set up variables for connection to Google Calendar API
 
     scope_list = list()
@@ -28,9 +33,10 @@ def setup_cal():
     return service
 
 
-def dump_calendar(num):
+def dump_calendar(calendar, num):
     """
     Dump events from Google Calendar
+    :param calendar: Google Calendar ID
     :param num: number of events to request from Google Calendar
     :return: list of dicts with events
     """
@@ -40,27 +46,34 @@ def dump_calendar(num):
     service = setup_cal()
 
     now = datetime.datetime.utcnow().isoformat() + '+03:00'
-    eventsResult = service.events().list(calendarId=os.environ['CALENDAR_ID'], timeMin=now, maxResults=num,
+    eventsResult = service.events().list(calendarId=calendar, timeMin=now, maxResults=num,
                                          singleEvents=True, orderBy='startTime').execute()
     events = eventsResult.get('items', [])
 
     google_events = []
     if events:
         for event in events:
-            google_event = service.events().get(calendarId=os.environ['CALENDAR_ID'], eventId=event["id"]).execute()
+            google_event = service.events().get(calendarId=calendar, eventId=event["id"]).execute()
             google_events.append(google_event)
 
     return google_events
 
 
-def dump_calendar_event(event):
+def dump_calendar_event(calendar, event):
+    """
+    Get info about specific calendar event from Google Calndar API
+    :param calendar: Google Calendar ID
+    :param event: event from MongoDB
+    :return: 
+    """
+
     service = setup_cal()
-    cal_event = service.events().get(calendarId=os.environ['CALENDAR_ID'], eventId=event["id"]).execute()
+    cal_event = service.events().get(calendarId=calendar, eventId=event["id"]).execute()
 
     return cal_event
 
 
-def dump_mongodb(events):
+def dump_mongodb(name, events):
     """
     Get list of dicts with events and update Mongo DB with actual information
     :param events: list of dicts with events
@@ -75,37 +88,52 @@ def dump_mongodb(events):
     # Insert or update events in Mongo DB
 
     for event in events:
-        db.events.update({"id": event["id"]}, {"$set": {"id": event["id"],
-                                                        "status": event["status"],
-                                                        "kind": event["kind"],
-                                                        "end": event["end"],
-                                                        "created": event["created"],
-                                                        "iCalUID": event["iCalUID"],
-                                                        "reminders": event["reminders"],
-                                                        "htmlLink": event["htmlLink"],
-                                                        "sequence": event["sequence"],
-                                                        "updated": event["updated"],
-                                                        "summary": event["summary"],
-                                                        "start": event["start"],
-                                                        "etag": event["etag"],
-                                                        "organizer": event["organizer"],
-                                                        "creator": event["creator"]
-                                                        }}, upsert=True)
+
+        # Enriching with 'date' and 'dateTime' for 'start' key
+
+        if "date" in event["start"].keys():
+            event["start"]["dateTime"] = event["start"]["date"] + "T00:00:00+03:00"
+        #            db[name].update({"id": event["id"]}, {"$set": {"start.dateTime": event["start"]["dateTime"]}}, upsert=True)
+        else:
+            event["start"]["date"] = event["start"]["dateTime"].split("T")[0]
+        #            db[name].update({"id": event["id"]}, {"$set": {"start.date": event["start"]["date"]}}, upsert=True)
+
+        # Update MongoDB
+
+        db[name].update({"id": event["id"]}, {"$set": {"id": event["id"],
+                                                       "status": event["status"],
+                                                       "kind": event["kind"],
+                                                       "end": event["end"],
+                                                       "created": event["created"],
+                                                       "iCalUID": event["iCalUID"],
+                                                       "reminders": event["reminders"],
+                                                       "htmlLink": event["htmlLink"],
+                                                       "sequence": event["sequence"],
+                                                       "updated": event["updated"],
+                                                       "summary": event["summary"],
+                                                       "start": event["start"],
+                                                       "etag": event["etag"],
+                                                       "organizer": event["organizer"],
+                                                       "creator": event["creator"]
+                                                       }}, upsert=True)
 
     # Remove useless events
 
-    for event_db in db.events.find({}):
+    for event_db in db[name].find({}):
+
+        # Remove removed events
+
         exists = False
         for event in events:
             if event_db["id"] == event["id"]:
                 exists = True
         if not exists:
-            db.events.delete_one({"id": event_db["id"]})
+            db[name].delete_one({"id": event_db["id"]})
 
     connection.close()
 
 
-def get_events(num):
+def get_events(name, num):
     """
     Get list of dicts with events from Mongo DB
     :param num: number of event to request and possible return 
@@ -120,7 +148,8 @@ def get_events(num):
     # Get events
 
     events_list = list()
-    events = db.events.find({'start.dateTime': {
+
+    events = db[name].find({'start.dateTime': {
         '$gt': (datetime.datetime.utcnow() + datetime.timedelta(hours=3)).isoformat()[:19] + '+03:00'}},
         limit=num).sort("start", pymongo.ASCENDING)
     for event in events:
