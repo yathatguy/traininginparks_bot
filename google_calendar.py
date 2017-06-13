@@ -148,6 +148,7 @@ def get_events(name, num):
         limit=num).sort("start", pymongo.ASCENDING)
     for event in events:
         events_list.append(event)
+    print("get_events", events_list)
 
     return events_list
 
