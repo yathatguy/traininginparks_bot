@@ -129,9 +129,10 @@ def get_events(name, num):
     # Get events
 
     events_list = list()
-    events = db[name].find({'start.dateTime': {
+    events = db[name].find_one({'start.dateTime': {
         '$gt': (datetime.datetime.utcnow() + datetime.timedelta(hours=3)).isoformat()[:19] + '+03:00'}},
         limit=num).sort("start", pymongo.ASCENDING)
+    print("get_events:", events)
     for event in events:
         print("get_events:", event)
         events_list.append(event)
