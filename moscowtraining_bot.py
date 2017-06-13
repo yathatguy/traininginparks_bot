@@ -203,12 +203,13 @@ def calendar(bot, update):
 
 
 def feedback(bot, update):
+    bot.send_message(chat_id=update.message.chat_id,
+                     text="Оставьте свой отзыв о работе бота. Вместе мы сделаем его лучше!")
     handle_feedback(bot, update)
 
 
 def handle_feedback(bot, update):
-    entities = update.message.get_entities()
-    bot.send_message(chat_id=update.message.chat_id, text=entities)
+    bot.send_message(chat_id=update.message.chat_id, text=update.message.text)
 
 
 def event_loc(bot, update, event):
