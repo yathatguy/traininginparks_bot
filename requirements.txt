@@ -15,5 +15,5 @@ googlemaps==2.5.0
 idna==2.5
 requests==2.17.3
 urllib3==1.21.1
-utils==0.9.0
 email==4.0.2
+utils==0.9.0
