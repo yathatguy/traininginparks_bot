@@ -222,14 +222,11 @@ def feedback(bot, update):
                      text="Оставьте свой отзыв о работе бота. Вместе мы сделаем его лучше!")
     print(update)
 
-    updater.dispatcher.add_handler(MessageHandler(filters=Filters.text, callback=handle_feedback))
-
     # bot.message.(chat_id=update.message.chat_id, text="Ваш отзыв принят, спасибо.")
-    print(update)
 
     # send_email(update.message.text)
     bot.send_message(chat_id=update.message.chat_id, text="Ваш отзыв принят, спасибо.")
-    updater.dispatcher.remove_handler(MessageHandler)
+
     # TODO: переключить клавиатуру на текст
 
 
@@ -262,6 +259,8 @@ def main():
     dispatcher.add_handler(feedback_handler)
 
     updater.dispatcher.add_handler(ChosenInlineResultHandler(train_button))
+
+    updater.dispatcher.add_handler(MessageHandler(filters=Filters.text, callback=handle_feedback))
 
     # Poll user actions
 
