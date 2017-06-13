@@ -133,6 +133,7 @@ def get_events(name, num):
         '$gt': (datetime.datetime.utcnow() + datetime.timedelta(hours=3)).isoformat()[:19] + '+03:00'}},
         limit=num).sort("start", pymongo.ASCENDING)
     for event in events:
+        print("get_events:", event)
         events_list.append(event)
 
     return events_list
