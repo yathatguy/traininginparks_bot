@@ -9,7 +9,7 @@ import time
 import pymongo
 import telegram
 from telegram.contrib.botan import Botan
-from telegram.ext import CommandHandler, ChosenInlineResultHandler, MessageHandler,
+from telegram.ext import CommandHandler, ChosenInlineResultHandler, MessageHandler
 from telegram.ext import Updater, Filters
 
 from google_calendar import dump_calendar, dump_mongodb, get_events, dump_calendar_event
