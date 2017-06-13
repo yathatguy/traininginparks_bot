@@ -204,12 +204,16 @@ def calendar(bot, update):
 
 def feedback(bot, update):
     bot.send_message(chat_id=update.message.chat_id,
-                     text="Оставьте свой отзыв о работе бота. Вместе мы сделаем его лучше!")
+                     text="Оставьте свой отзыв о работе бота. Вместе мы сделаем его лучше!",
+                     keyboard={"one_time_keyboard": True})
+
     handle_feedback(bot, update)
 
 
 def handle_feedback(bot, update):
     bot.send_message(chat_id=update.message.chat_id, text=update.message.text)
+    bot.send_message(chat_id=update.message.chat_id,
+                     text="Спасибо, Ваш отзыв передан ответственным.")
 
 
 def event_loc(bot, update, event):
