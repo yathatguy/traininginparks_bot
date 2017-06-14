@@ -17,13 +17,12 @@ def send_email(message):
     print(type(message.from_user.first_name.encode('utf-8')),
           type(message.from_user.last_name.encode('utf-8')),
           type(message.from_user.username.encode('utf-8')),
-          type(message.text.encode('utf-8')))
+          type(message.text))
 
-    text = 'First name: ' + message.from_user.first_name.encode(
-        'utf-8') + "\nLast name: " + message.from_user.last_name.encode(
-        'utf-8') + "\nUsername: " + message.from_user.username.encode('utf-8') + "\n\n" + message.text.encode('utf-8')
+    text = message.from_user.first_name.encode('utf-8') + message.from_user.last_name.encode(
+        'utf-8') + message.from_user.username.encode('utf-8') + message.text
 
-    msg = MIMEText(text)
+    msg = MIMEText(text, 'plain')
     msg["Subject"] = "TrainingInParks Bot Feedback"
     msg["From"] = me
     msg["To"] = you
