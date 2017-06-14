@@ -8,10 +8,16 @@ from email.mime.text import MIMEText
 
 
 def send_email(message):
+    """
+    Send feedback message
+    :param message: message from telegram User 
+    :return: N/A 
+    """
+
     # Create message
 
     me = "traininginparks@yandex.ru"
-    you = ["thatguy@yandex.ru", "ilazdorenko@gmail.com"]
+    you = ["thatguy@yandex.ru, ilazdorenko@gmail.com"]
     text = "First name: {}\nLast name: {}\nUsername: {}\n\n{}".format(message.from_user.first_name,
                                                                       message.from_user.last_name,
                                                                       message.from_user.username, message.text)
