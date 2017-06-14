@@ -51,7 +51,7 @@ def start(bot, update):
     """
 
     kb_markup = keyboard()
-    bot.send_message(chat_id=update.message.chat_id,
+    bot.send_message(chat_id=update.message.chat.id,
                      text="Добро пожаловать, атлет!",
                      reply_markup=kb_markup)
 
@@ -80,25 +80,25 @@ def attendees(bot, update):
 
     events = get_events("trains", 5)
     if events:
-        bot.sendMessage(chat_id=update.message.chat_id,
+        bot.sendMessage(chat_id=update.message.chat.id,
                         text="Список людей, записавшихся на предстоящие тренировки:")
         for event in events:
             if "attendee" in event.keys():
                 attendees_list = ''
                 for attendee in event["attendee"]:
                     attendees_list = attendees_list + ' @' + attendee
-                bot.sendMessage(chat_id=update.message.chat_id,
+                bot.sendMessage(chat_id=update.message.chat.id,
                                 text="{}: {} ({}) - {}".format(event["start"]["dateTime"].split("T")[0],
                                                                event["summary"],
                                                                len(event["attendee"]), attendees_list))
             else:
-                bot.sendMessage(chat_id=update.message.chat_id,
+                bot.sendMessage(chat_id=update.message.chat.id,
                                 text="{}: {} ({}) - {}".format(event["start"]["dateTime"].split("T")[0],
                                                                event["summary"],
                                                                0, 'пока никто не записался'))
         botan_track(update.message, update)
     else:
-        bot.sendMessage(chat_id=update.message.chat_id, text="Нет трениировок, нет и записавшихся.")
+        bot.sendMessage(chat_id=update.message.chat.id, text="Нет трениировок, нет и записавшихся.")
 
 
 def reply(bot, update, text):
@@ -111,7 +111,7 @@ def reply(bot, update, text):
     """
 
     # TODO: не найден chat_id
-    bot.sendMessage(chat_id=update.message.chat_id, text=text)
+    bot.send_message(chat_id=update.message.chat.id, text=text)
     botan_track(update.message, update)
 
 
@@ -186,7 +186,7 @@ def train_button(bot, update):
 
 def calendar(bot, update):
     """
-    Get upcomgin events and list to User
+    Get upcoming events and list to User
     :param bot: telegram API object
     :param update: telegram API state
     :return: N/A
@@ -205,6 +205,7 @@ def calendar(bot, update):
                       text="{}: {} с {} до {}".format(event["start"]["dateTime"].split("T")[0], event["summary"],
                                                       event["start"]["dateTime"].split("T")[1][:5],
                                                       event["end"]["dateTime"].split("T")[1][:5]))
+            event_loc(bot, update, event)
             botan_track(update.message, update)
     else:
         reply(bot, update, text="В календаре пока нет запланированных событий.")
@@ -221,21 +222,43 @@ def event_loc(bot, update, event):
     """
 
     cal_event = dump_calendar_event(event["organizer"]["email"], event)
-    coordinates = get_coordinates(cal_event["location"])
-    bot.send_venue(chat_id=update.message.chat_id, latitude=coordinates["lat"],
-                   longitude=coordinates["lng"], title=cal_event["summary"], address=cal_event["location"])
+
+    if "location" in cal_event.keys():
+        coordinates = get_coordinates(cal_event["location"])
+        bot.send_venue(chat_id=update.message.chat.id, latitude=coordinates["lat"], longitude=coordinates["lng"],
+                       title=cal_event["summary"], address=cal_event["location"])
+    else:
+        pass
 
 
 def feedback(bot, update):
-    bot.send_message(chat_id=update.message.chat_id,
+    """
+    Handle 'feedback' command and callls message handler
+    :param bot: telegram API object
+    :param update:  telegram API state
+    :return: N/A 
+    """
+    global old_message
+    old_message = update.message
+    bot.send_message(chat_id=update.message.chat.id,
                      text="Оставьте свой отзыв о работе бота. Вместе мы сделаем его лучше!",
                      reply_markup=telegram.ReplyKeyboardRemove())
 
 
-def handle_feedback(bot, update):
-    send_email(update.message)
-    kb_markup = keyboard()
-    bot.send_message(chat_id=update.message.chat_id, text="Ваш отзыв принят, спасибо.", reply_markup=kb_markup)
+def handle_message(bot, update):
+    """
+    Parse message and/or update and do actions
+    :param bot: telegram API object
+    :param update:  telegram API state
+    :return: N/A 
+    """
+
+    global old_message
+    if "/feedback" in old_message.parse_entities(types="bot_command").values():
+        send_email(update.message)
+        kb_markup = keyboard()
+        bot.send_message(chat_id=update.message.chat.id, text="Ваш отзыв принят, спасибо.", reply_markup=kb_markup)
+    old_message = update.message
 
 
 def main():
@@ -263,7 +286,7 @@ def main():
 
     updater.dispatcher.add_handler(ChosenInlineResultHandler(train_button))
 
-    updater.dispatcher.add_handler(MessageHandler(filters=Filters.text, callback=handle_feedback))
+    updater.dispatcher.add_handler(MessageHandler(filters=Filters.text, callback=handle_message))
 
     # Poll user actions
 
@@ -292,4 +315,5 @@ def main():
 
 
 if __name__ == '__main__':
+    # DOC: https://core.telegram.org/bots/api
     main()
