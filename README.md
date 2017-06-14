@@ -22,9 +22,10 @@ The following env variables are set up to run bot:
 - `BOTAN_API_KEY`: API key for [botan](http://appmetrica.yandex.com) stats posting
 - `GOOGLE_CREDENTIALS`: Credentials for Google API connection
 - `SCOPES`: Scopes to connect thru Google API, only Calendar in `readonly` is set
-- `CALENDAR_ID`: Calendar ID in [Google Calendar](https://calendar.google.com)
+- `TRAIN_CALENDAR_ID`: Calendar ID in [Google Calendar](https://calendar.google.com) for trains
+- `EBENTS_CALENDAR_ID`: Calendar ID in [Google Calendar](https://calendar.google.com) for events
 - `MONGODB_URI`: URI with auth to connnect MongoDB
-- `DOZEN`: Crossfit location
-- `SAD`: Neskuchniy sad location
-
+- `LOGDNA_KEY`: Key for LogDNA service
+- `MAPS_API`: Google Maps API key
+- `YANDEX_PASSWORD`: password for `traininginparks@yandex.ru` account
 
