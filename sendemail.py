@@ -12,8 +12,9 @@ def send_email(message):
 
     me = "traininginparks@yandex.ru"
     you = ["thatguy@yandex.ru", "ilazdorenko@gmail.com", me]
-    text = 'First name: {}\nLasr name: {}\nUSername: {}\n\n{}'.format(message.user.first_name, message.user.last_name,
-                                                                      message.user.username, message.text)
+    text = 'First name: {}\nLasr name: {}\nUSername: {}\n\n{}'.format(message.from_user.first_name,
+                                                                      message.from_user.last_name,
+                                                                      message.from_user.username, message.text)
     msg = MIMEText(text)
     msg["Subject"] = "TrainingInParks Bot Feedback"
     msg["From"] = me
