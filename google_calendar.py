@@ -76,6 +76,7 @@ def dump_calendar_event(calendar, event):
 def dump_mongodb(name, events):
     """
     Get list of dicts with events and update Mongo DB with actual information
+    :param name: Name for MongoDB collection
     :param events: list of dicts with events
     :return: N/A
     """
@@ -89,14 +90,17 @@ def dump_mongodb(name, events):
 
     for event in events:
 
+        # Check attendees list
+
+        if "attendee" not in event.keys():
+            event["attendee"] = list()
+
         # Enriching with 'date' and 'dateTime' for 'start' key
 
         if "date" in event["start"].keys():
             event["start"]["dateTime"] = event["start"]["date"] + "T00:00:00+03:00"
-        #            db[name].update({"id": event["id"]}, {"$set": {"start.dateTime": event["start"]["dateTime"]}}, upsert=True)
         else:
             event["start"]["date"] = event["start"]["dateTime"].split("T")[0]
-        #            db[name].update({"id": event["id"]}, {"$set": {"start.date": event["start"]["date"]}}, upsert=True)
 
         # Update MongoDB
 
@@ -114,7 +118,8 @@ def dump_mongodb(name, events):
                                                        "start": event["start"],
                                                        "etag": event["etag"],
                                                        "organizer": event["organizer"],
-                                                       "creator": event["creator"]
+                                                       "creator": event["creator"],
+                                                       "attendee": event["attendee"]
                                                        }}, upsert=True)
 
     # Remove useless events

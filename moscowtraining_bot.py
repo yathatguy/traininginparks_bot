@@ -83,7 +83,7 @@ def attendees(bot, update):
         bot.sendMessage(chat_id=update.message.chat.id,
                         text="Список людей, записавшихся на предстоящие тренировки:")
         for event in events:
-            if "attendee" in event.keys():
+            if len(event["attendee"]) > 0:
                 attendees_list = ''
                 for attendee in event["attendee"]:
                     attendees_list = attendees_list + ' @' + attendee
@@ -170,7 +170,7 @@ def train_button(bot, update):
     query = update.callback_query
     connection = pymongo.MongoClient(os.environ['MONGODB_URI'])
     db = connection["heroku_r261ww1k"]
-    if db.events.find({"id": query.data, "attendee": query.message.chat.username}).count() == 0:
+    if db.trains.find({"id": query.data, "attendee": query.message.chat.username}).count() == 0:
         event = db.events.find_one({"id": query.data})
         db.events.update({"id": query.data}, {"$push": {"attendee": query.message.chat.username}}, upsert=True)
         bot.sendMessage(text="Отлично, записались!", chat_id=query.message.chat_id, message_id=query.message.message_id)
