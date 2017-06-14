@@ -14,13 +14,21 @@ def send_email(message):
     you = "thatguy@yandex.ru"
     # "ilazdorenko@gmail.com"
 
-    print(type(message.from_user.first_name.encode('utf-8')),
-          type(message.from_user.last_name.encode('utf-8')),
-          type(message.from_user.username.encode('utf-8')),
-          type(message.text))
-
     text = message.from_user.first_name.encode('utf-8') + message.from_user.last_name.encode(
         'utf-8') + message.from_user.username.encode('utf-8') + message.text
+
+    print(type(text), text)
+
+    try:
+        print(type(message.from_user.first_name),
+              type(message.from_user.last_name),
+              type(message.from_user.username),
+              type(message.text))
+    except:
+        print(type(message.from_user.first_name.encode('utf-8')),
+              type(message.from_user.last_name.encode('utf-8')),
+              type(message.from_user.username.encode('utf-8')),
+              type(message.text))
 
     msg = MIMEText(text, 'plain')
     msg["Subject"] = "TrainingInParks Bot Feedback"
