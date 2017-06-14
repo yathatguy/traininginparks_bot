@@ -9,7 +9,7 @@ import time
 import pymongo
 import telegram
 from telegram.contrib.botan import Botan
-from telegram.ext import CommandHandler, ChosenInlineResultHandler, MessageHandler
+from telegram.ext import CommandHandler, CallbackQueryHandler, MessageHandler
 from telegram.ext import Updater, Filters
 
 from google_calendar import dump_calendar, dump_mongodb, get_events, dump_calendar_event
@@ -284,7 +284,7 @@ def main():
     feedback_handler = CommandHandler("feedback", feedback)
     dispatcher.add_handler(feedback_handler)
 
-    updater.dispatcher.add_handler(ChosenInlineResultHandler(train_button))
+    updater.dispatcher.add_handler(CallbackQueryHandler(train_button))
 
     updater.dispatcher.add_handler(MessageHandler(filters=Filters.text, callback=handle_message))
 
