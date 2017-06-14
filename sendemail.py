@@ -14,17 +14,17 @@ def send_email(message):
     you = "thatguy@yandex.ru"
     # "ilazdorenko@gmail.com"
     try:
-        print("encode", message.text.encode("utf8"), type(message.text.encode("utf8")))
+        print("encode", message.text.decode('unicode-escape'), type(message.text.decode('unicode-escape')))
         print(type(message.from_user.first_name), type(message.from_user.last_name), type(message.from_user.username))
     except:
         print("decode", message.text.decode("utf8"), type(message.text.decode("utf8")))
         print(type(message.from_user.first_name), type(message.from_user.last_name), type(message.from_user.username))
     print(message.from_user.first_name, message.from_user.last_name, message.from_user.username,
-          message.text)
+          message.text.decode('unicode-escape'))
     text = 'First name: {}\nLast name: {}\nUsername: {}\n\n{}'.format(message.from_user.first_name,
                                                                       message.from_user.last_name,
                                                                       message.from_user.username,
-                                                                      message.text)
+                                                                      message.text.decode('unicode-escape'))
     msg = MIMEText(text)
     msg["Subject"] = "TrainingInParks Bot Feedback"
     msg["From"] = me
