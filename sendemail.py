@@ -14,10 +14,10 @@ def send_email(message):
     you = "thatguy@yandex.ru"
     # "ilazdorenko@gmail.com"
 
-    print(message.from_user.first_name.encode('utf-8'),
-          message.from_user.last_name.encode('utf-8'),
-          message.from_user.username.encode('utf-8'),
-          message.text.encode('utf-8'))
+    print(type(message.from_user.first_name.encode('utf-8')),
+          type(message.from_user.last_name.encode('utf-8')),
+          type(message.from_user.username.encode('utf-8')),
+          type(message.text.encode('utf-8')))
 
     text = 'First name: {}\nLast name: {}\nUsername: {}\n\n{}'.format(message.from_user.first_name.encode('utf-8'),
                                                                       message.from_user.last_name.encode('utf-8'),
