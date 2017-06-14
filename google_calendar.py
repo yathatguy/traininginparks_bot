@@ -113,8 +113,7 @@ def dump_mongodb(name, events):
                                                        "start": event["start"],
                                                        "etag": event["etag"],
                                                        "organizer": event["organizer"],
-                                                       "creator": event["creator"],
-                                                       "attendee": event["attendee"]
+                                                       "creator": event["creator"]
                                                        }}, upsert=True)
 
     # Remove useless events
