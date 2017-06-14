@@ -13,25 +13,9 @@ def send_email(message):
     me = "traininginparks@yandex.ru"
     you = "thatguy@yandex.ru"
     # "ilazdorenko@gmail.com"
-
-    text = message.from_user.first_name.encode('utf-8') + message.from_user.last_name.encode(
-        'utf-8') + message.from_user.username.encode('utf-8') + message.text
-
-
-
-    try:
-        print("try")
-        print(type(message.from_user.first_name),
-              type(message.from_user.last_name),
-              type(message.from_user.username),
-              type(message.text))
-    except:
-        print("except")
-        print(type(message.from_user.first_name.encode('utf-8')),
-              type(message.from_user.last_name.encode('utf-8')),
-              type(message.from_user.username.encode('utf-8')),
-              type(message.text.encode('utf-8')))
-
+    text = "First name: {}\nLast name: {}\nUsername: {}\n\n{}".format(message.from_user.first_name,
+                                                                      message.from_user.last_name,
+                                                                      message.from_user.username, message.text)
     msg = MIMEText(text, 'plain', "utf-8")
     msg["Subject"] = "TrainingInParks Bot Feedback"
     msg["From"] = me
