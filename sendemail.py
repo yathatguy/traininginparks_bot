@@ -13,7 +13,10 @@ def send_email(message):
     me = "traininginparks@yandex.ru"
     you = "thatguy@yandex.ru"
     # "ilazdorenko@gmail.com"
-    print(message.text, type(message.text))
+    try:
+        print("encode", message.text.encode("utf8"), type(message.text.encode("utf8")))
+    except:
+        print("decode", message.text.decode("utf8"), type(message.text.decode("utf8")))
     print(message.from_user.first_name, message.from_user.last_name, message.from_user.username,
           message.text)
     text = 'First name: {}\nLast name: {}\nUsername: {}\n\n{}'.format(message.from_user.first_name,
