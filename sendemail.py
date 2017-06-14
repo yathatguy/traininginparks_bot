@@ -17,7 +17,7 @@ def send_email(message):
     text = message.from_user.first_name.encode('utf-8') + message.from_user.last_name.encode(
         'utf-8') + message.from_user.username.encode('utf-8') + message.text
 
-    print(type(text), text)
+
 
     try:
         print(type(message.from_user.first_name),
@@ -28,7 +28,7 @@ def send_email(message):
         print(type(message.from_user.first_name.encode('utf-8')),
               type(message.from_user.last_name.encode('utf-8')),
               type(message.from_user.username.encode('utf-8')),
-              type(message.text))
+              type(message.text.encode('utf-8')))
 
     msg = MIMEText(text, 'plain')
     msg["Subject"] = "TrainingInParks Bot Feedback"
