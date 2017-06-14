@@ -171,8 +171,8 @@ def train_button(bot, update):
     connection = pymongo.MongoClient(os.environ['MONGODB_URI'])
     db = connection["heroku_r261ww1k"]
     if db.trains.find({"id": query.data, "attendee": query.message.chat.username}).count() == 0:
-        event = db.events.find_one({"id": query.data})
-        db.events.update({"id": query.data}, {"$push": {"attendee": query.message.chat.username}}, upsert=True)
+        event = db.trains.find_one({"id": query.data})
+        db.trains.update({"id": query.data}, {"$push": {"attendee": query.message.chat.username}}, upsert=True)
         bot.sendMessage(text="Отлично, записались!", chat_id=query.message.chat_id, message_id=query.message.message_id)
         bot.sendMessage(text="Ждем тебя {} с {} по адресу:".format(event["start"]["dateTime"].split("T")[0],
                                                                    event["start"]["dateTime"].split("T")[1][:5]),
