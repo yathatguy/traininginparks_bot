@@ -17,7 +17,7 @@ def send_email(message):
     # Create message
 
     me = "traininginparks@yandex.ru"
-    you = ["thatguy@yandex.ru, ilazdorenko@gmail.com"]
+    you = "thatguy@yandex.ru,ilazdorenko@gmail.com"
     text = "First name: {}\nLast name: {}\nUsername: {}\n\n{}".format(message.from_user.first_name,
                                                                       message.from_user.last_name,
                                                                       message.from_user.username, message.text)
@@ -32,7 +32,7 @@ def send_email(message):
     server.connect("smtp.yandex.ru", 465)
     server.ehlo()
     server.login(me, os.environ["YANDEX_PASSWORD"])
-    server.sendmail(me, you, msg.as_string())
+    server.sendmail(me, you.split(","), msg.as_string())
     server.quit()
 
 
