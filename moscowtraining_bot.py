@@ -133,14 +133,14 @@ def train(bot, update):
                                                   event["start"]["dateTime"].split("T")[1][:5],
                                                   event["end"]["dateTime"].split("T")[1][:5]))
             botan_track(update.message, update)
-        kb_markup = event_keyboard(bot, update, events)
+        kb_markup = train_keyboard(bot, update, events)
         update.message.reply_text('Давай запишемся на одну из тренировок:', reply_markup=kb_markup)
     else:
         reply(bot, update, text="Пока тренировки не запланированы. Восстанавливаемся!")
         botan_track(update.message, update)
 
 
-def event_keyboard(bot, update, events):
+def train_keyboard(bot, update, events):
     """
     Create keyboard markup that can be shown to User
     :param bot: telegram API object
@@ -174,7 +174,7 @@ def train_button(bot, update):
         event = db.trains.find_one({"id": query.data})
         db.trains.update({"id": query.data}, {"$push": {"attendee": query.message.chat.username}}, upsert=True)
         bot.sendMessage(text="Отлично, записались!", chat_id=query.message.chat_id, message_id=query.message.message_id)
-        bot.sendMessage(text="Ждем тебя {} с {} по адресу:".format(event["start"]["dateTime"].split("T")[0],
+        bot.sendMessage(text="Ждем тебя {} с {}:".format(event["start"]["dateTime"].split("T")[0],
                                                                    event["start"]["dateTime"].split("T")[1][:5]),
                         chat_id=query.message.chat_id, message_id=query.message.message_id)
         event_loc(bot, query, event)
