@@ -30,7 +30,7 @@ def send_email(message):
               type(message.from_user.username.encode('utf-8')),
               type(message.text.encode('utf-8')))
 
-    msg = MIMEText(text, 'plain')
+    msg = MIMEText(text, 'plain', "utf-8")
     msg["Subject"] = "TrainingInParks Bot Feedback"
     msg["From"] = me
     msg["To"] = you
