@@ -83,7 +83,7 @@ def attendees(bot, update):
         bot.sendMessage(chat_id=update.message.chat.id,
                         text="Список людей, записавшихся на предстоящие тренировки:")
         for event in events:
-            if len(event["attendee"]) > 0:
+            if "attendee" in event.keys():
                 attendees_list = ''
                 for attendee in event["attendee"]:
                     attendees_list = attendees_list + ' @' + attendee

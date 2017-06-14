@@ -90,11 +90,6 @@ def dump_mongodb(name, events):
 
     for event in events:
 
-        # Check attendees list
-
-        if "attendee" not in event.keys():
-            event["attendee"] = list()
-
         # Enriching with 'date' and 'dateTime' for 'start' key
 
         if "date" in event["start"].keys():
