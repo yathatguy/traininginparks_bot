@@ -174,7 +174,7 @@ def train_button(bot, update):
         event = db.trains.find_one({"id": query.data})
         db.trains.update({"id": query.data}, {"$push": {"attendee": query.message.chat.username}}, upsert=True)
         bot.sendMessage(text="Отлично, записались!", chat_id=query.message.chat_id, message_id=query.message.message_id)
-        bot.sendMessage(text="Ждем тебя {} в {}:".format(event["start"]["dateTime"].split("T")[0],
+        bot.sendMessage(text="Ждем тебя {} в {}".format(event["start"]["dateTime"].split("T")[0],
                                                                    event["start"]["dateTime"].split("T")[1][:5]),
                         chat_id=query.message.chat_id, message_id=query.message.message_id)
         event_loc(bot, query, event)
@@ -225,8 +225,11 @@ def event_loc(bot, update, event):
 
     if "location" in cal_event.keys():
         coordinates = get_coordinates(cal_event["location"])
-        bot.send_venue(chat_id=update.message.chat.id, latitude=coordinates["lat"], longitude=coordinates["lng"],
+        if not bool(coordinates):
+            bot.send_venue(chat_id=update.message.chat.id, latitude=coordinates["lat"], longitude=coordinates["lng"],
                        title=cal_event["summary"], address=cal_event["location"])
+        else:
+            pass
     else:
         pass
 
