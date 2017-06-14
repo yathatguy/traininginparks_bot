@@ -230,12 +230,10 @@ def feedback(bot, update):
     bot.send_message(chat_id=update.message.chat_id,
                      text="Оставьте свой отзыв о работе бота. Вместе мы сделаем его лучше!",
                      reply_markup=telegram.ReplyKeyboardRemove())
-    # TODO: переключить клавиатуру на текст
-    # telegram.ReplyKeyboardRemove
 
 
 def handle_feedback(bot, update):
-    send_email(update.message.text)
+    send_email(update.message)
     kb_markup = keyboard()
     bot.send_message(chat_id=update.message.chat_id, text="Ваш отзыв принят, спасибо.", reply_markup=kb_markup)
 
