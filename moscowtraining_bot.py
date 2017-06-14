@@ -238,6 +238,7 @@ def feedback(bot, update):
     :param update:  telegram API state
     :return: N/A 
     """
+
     global old_message
     old_message = update.message
     bot.send_message(chat_id=update.message.chat.id,
@@ -247,7 +248,7 @@ def feedback(bot, update):
 
 def handle_message(bot, update):
     """
-    Parse message and/or update and do actions
+    Parse message and/or update and do actions. Use 'global old_message' to handle different messages.
     :param bot: telegram API object
     :param update:  telegram API state
     :return: N/A 
