@@ -225,6 +225,7 @@ def event_loc(bot, update, event):
 
     if "location" in cal_event.keys():
         coordinates = get_coordinates(cal_event["location"])
+        print(bool(coordinates))
         if not bool(coordinates):
             bot.send_venue(chat_id=update.message.chat.id, latitude=coordinates["lat"], longitude=coordinates["lng"],
                        title=cal_event["summary"], address=cal_event["location"])

@@ -22,7 +22,7 @@ def get_coordinates(address):
         coordinates = raw_coordinates["results"][0]["geometry"]["location"]
     else:
         coordinates = dict()
-
+    print(coordinates)
     return coordinates
 
 
