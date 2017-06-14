@@ -83,7 +83,7 @@ def attendees(bot, update):
         bot.sendMessage(chat_id=update.message.chat.id,
                         text="Список людей, записавшихся на предстоящие тренировки:")
         for event in events:
-            if "attendee" in event.keys():
+            if "attendee" in event.keys() and len(event["attendee"]) > 0:
                 attendees_list = ''
                 for attendee in event["attendee"]:
                     attendees_list = attendees_list + ' @' + attendee
@@ -174,7 +174,7 @@ def train_button(bot, update):
         event = db.trains.find_one({"id": query.data})
         db.trains.update({"id": query.data}, {"$push": {"attendee": query.message.chat.username}}, upsert=True)
         bot.sendMessage(text="Отлично, записались!", chat_id=query.message.chat_id, message_id=query.message.message_id)
-        bot.sendMessage(text="Ждем тебя {} с {}:".format(event["start"]["dateTime"].split("T")[0],
+        bot.sendMessage(text="Ждем тебя {} в {}:".format(event["start"]["dateTime"].split("T")[0],
                                                                    event["start"]["dateTime"].split("T")[1][:5]),
                         chat_id=query.message.chat_id, message_id=query.message.message_id)
         event_loc(bot, query, event)
