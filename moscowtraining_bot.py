@@ -9,11 +9,12 @@ import time
 import pymongo
 import telegram
 from telegram.contrib.botan import Botan
-from telegram.ext import CommandHandler, CallbackQueryHandler
-from telegram.ext import Updater
+from telegram.ext import CommandHandler, ChosenInlineResultHandler, MessageHandler
+from telegram.ext import Updater, Filters
 
 from google_calendar import dump_calendar, dump_mongodb, get_events, dump_calendar_event
 from maps_api import get_coordinates
+from sendemail import send_email
 
 # Set up Updater and Dispatcher
 
@@ -27,7 +28,7 @@ botan = Botan(os.environ['BOTAN_API_KEY'])
 
 # Add logging
 
-logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO)
+logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.WARNING)
 
 
 def botan_track(message, update):
@@ -49,17 +50,24 @@ def start(bot, update):
     :return: N/A
     """
 
-    # bot.sendMessage(chat_id=update.message.chat_id, text=os.environ['WELCOMETEXT'])
-
-    botan_track(update.message, update)
-    kb = [[telegram.KeyboardButton('/train')],
-          [telegram.KeyboardButton('/attendees')],
-          [telegram.KeyboardButton('/calendar')]]
-    kb_markup = telegram.ReplyKeyboardMarkup(kb, resize_keyboard=True)
+    kb_markup = keyboard()
     bot.send_message(chat_id=update.message.chat_id,
                      text="Добро пожаловать, атлет!",
-                     reply_markup=kb_markup,
-                     resize_keyboard=True)
+                     reply_markup=kb_markup)
+
+
+def keyboard():
+    """
+    Create keyboard markup object with buttons
+    :return: keyboard markup object
+    """
+
+    kb = [[telegram.KeyboardButton('/train'), telegram.KeyboardButton('/attendees')],
+          [telegram.KeyboardButton('/calendar')],
+          [telegram.KeyboardButton('/feedback')]]
+    kb_markup = telegram.ReplyKeyboardMarkup(kb, resize_keyboard=True)
+
+    return kb_markup
 
 
 def attendees(bot, update):
@@ -70,10 +78,10 @@ def attendees(bot, update):
     :return: N/A
     """
 
-    bot.sendMessage(chat_id=update.message.chat_id,
-                    text="Список людей, записавшихся на предстоящие тренировки:")
     events = get_events("trains", 5)
     if events:
+        bot.sendMessage(chat_id=update.message.chat_id,
+                        text="Список людей, записавшихся на предстоящие тренировки:")
         for event in events:
             if "attendee" in event.keys():
                 attendees_list = ''
@@ -90,7 +98,7 @@ def attendees(bot, update):
                                                                0, 'пока никто не записался'))
         botan_track(update.message, update)
     else:
-        bot.sendMessage(chat_id=update.message.chat_id, text="Нет трениировок, нет и записавшихся")
+        bot.sendMessage(chat_id=update.message.chat_id, text="Нет трениировок, нет и записавшихся.")
 
 
 def reply(bot, update, text):
@@ -218,6 +226,18 @@ def event_loc(bot, update, event):
                    longitude=coordinates["lng"], title=cal_event["summary"], address=cal_event["location"])
 
 
+def feedback(bot, update):
+    bot.send_message(chat_id=update.message.chat_id,
+                     text="Оставьте свой отзыв о работе бота. Вместе мы сделаем его лучше!",
+                     reply_markup=telegram.ReplyKeyboardRemove())
+
+
+def handle_feedback(bot, update):
+    send_email(update.message)
+    kb_markup = keyboard()
+    bot.send_message(chat_id=update.message.chat_id, text="Ваш отзыв принят, спасибо.", reply_markup=kb_markup)
+
+
 def main():
     """
     Main function
@@ -238,7 +258,12 @@ def main():
     calendar_handler = CommandHandler("calendar", calendar)
     dispatcher.add_handler(calendar_handler)
 
-    updater.dispatcher.add_handler(CallbackQueryHandler(train_button))
+    feedback_handler = CommandHandler("feedback", feedback)
+    dispatcher.add_handler(feedback_handler)
+
+    updater.dispatcher.add_handler(ChosenInlineResultHandler(train_button))
+
+    updater.dispatcher.add_handler(MessageHandler(filters=Filters.text, callback=handle_feedback))
 
     # Poll user actions
 
