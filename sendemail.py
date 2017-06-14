@@ -20,11 +20,13 @@ def send_email(message):
 
 
     try:
+        print("try")
         print(type(message.from_user.first_name),
               type(message.from_user.last_name),
               type(message.from_user.username),
               type(message.text))
     except:
+        print("except")
         print(type(message.from_user.first_name.encode('utf-8')),
               type(message.from_user.last_name.encode('utf-8')),
               type(message.from_user.username.encode('utf-8')),
