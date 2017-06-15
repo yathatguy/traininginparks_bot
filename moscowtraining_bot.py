@@ -225,7 +225,6 @@ def event_loc(bot, update, event):
 
     if "location" in cal_event.keys():
         coordinates = get_coordinates(cal_event["location"])
-        print(bool(coordinates))
         if bool(coordinates):
             bot.send_venue(chat_id=update.message.chat.id, latitude=coordinates["lat"], longitude=coordinates["lng"],
                        title=cal_event["summary"], address=cal_event["location"])
@@ -259,7 +258,8 @@ def handle_message(bot, update):
     """
 
     global old_message
-    if "/feedback" in old_message.parse_entities(types="bot_command").values():
+    if ('old_message' in vars() or 'old_message' in globals()) and "/feedback" in old_message.parse_entities(
+            types="bot_command").values():
         send_email(update.message)
         kb_markup = keyboard()
         bot.send_message(chat_id=update.message.chat.id, text="Ваш отзыв принят, спасибо.", reply_markup=kb_markup)
