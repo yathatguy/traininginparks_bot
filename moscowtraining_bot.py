@@ -50,10 +50,18 @@ def start(bot, update):
     :return: N/A
     """
 
-    kb_markup = keyboard()
-    bot.send_message(chat_id=update.message.chat.id,
-                     text="Добро пожаловать, атлет!",
-                     reply_markup=kb_markup)
+    if update.message.chat.username != '':
+        kb_markup = keyboard()
+        bot.send_message(chat_id=update.message.chat.id,
+                         text="Добро пожаловать, @{}!".format(update.message.chat.username),
+                         reply_markup=kb_markup)
+    else:
+        bot.send_message(chat_id=update.message.chat.id,
+                         text="""Привет!
+                              
+                              К сожалению Вы не установили username для своего telegram-аккаунта, и поэтому бот не сможет корректно для Вас работать.
+                              
+                              Пример, как установить usernameб описан тут http://telegramzy.ru/nik-v-telegramm/""")
 
 
 def keyboard():
@@ -258,8 +266,8 @@ def handle_message(bot, update):
     """
 
     global old_message
-    if ('old_message' in vars() or 'old_message' in globals()) and "/feedback" in old_message.parse_entities(
-            types="bot_command").values():
+    if ('old_message' in vars() or 'old_message' in globals()) \
+            and "/feedback" in old_message.parse_entities(types="bot_command").values():
         send_email(update.message)
         kb_markup = keyboard()
         bot.send_message(chat_id=update.message.chat.id, text="Ваш отзыв принят, спасибо.", reply_markup=kb_markup)
