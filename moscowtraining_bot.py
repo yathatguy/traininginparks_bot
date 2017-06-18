@@ -5,6 +5,7 @@ from __future__ import unicode_literals, print_function
 import logging
 import os
 import time
+import signal
 
 import pymongo
 import telegram
@@ -270,11 +271,27 @@ def handle_message(bot, update):
     old_message = update.message
 
 
+def graceful(signum, frame):
+    """
+    Graceful exit
+    :param signum: Signal number
+    :param frame: Frame
+    :return: N/A
+    """
+
+    print("Got CTRL+C")
+    exit (0)
+
+
 def main():
     """
     Main function
     :return: N/A
     """
+
+    # Graceful exit
+
+    signal.signal(signal.SIGINT, graceful)
 
     # Set up handlers and buttons
 
