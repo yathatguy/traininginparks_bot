@@ -57,11 +57,7 @@ def start(bot, update):
                          reply_markup=kb_markup)
     else:
         bot.send_message(chat_id=update.message.chat.id,
-                         text="""Привет!
-                              
-                              К сожалению Вы не установили username для своего telegram-аккаунта, и поэтому бот не сможет корректно для Вас работать.
-                              
-                              Пример, как установить usernameб описан тут http://telegramzy.ru/nik-v-telegramm/""")
+                         text="""Привет!\n\nК сожалению Вы не установили username для своего telegram-аккаунта, и поэтому бот не сможет корректно для Вас работать.\n\nПример, как установить usernameб описан тут http://telegramzy.ru/nik-v-telegramm/""")
 
 
 def keyboard():
@@ -183,7 +179,7 @@ def train_button(bot, update):
         db.trains.update({"id": query.data}, {"$push": {"attendee": query.message.chat.username}}, upsert=True)
         bot.sendMessage(text="Отлично, записались!", chat_id=query.message.chat_id, message_id=query.message.message_id)
         bot.sendMessage(text="Ждем тебя {} в {}".format(event["start"]["dateTime"].split("T")[0],
-                                                                   event["start"]["dateTime"].split("T")[1][:5]),
+                                                        event["start"]["dateTime"].split("T")[1][:5]),
                         chat_id=query.message.chat_id, message_id=query.message.message_id)
         event_loc(bot, query, event)
     else:
@@ -235,7 +231,7 @@ def event_loc(bot, update, event):
         coordinates = get_coordinates(cal_event["location"])
         if bool(coordinates):
             bot.send_venue(chat_id=update.message.chat.id, latitude=coordinates["lat"], longitude=coordinates["lng"],
-                       title=cal_event["summary"], address=cal_event["location"])
+                           title=cal_event["summary"], address=cal_event["location"])
         else:
             pass
     else:
