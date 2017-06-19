@@ -217,10 +217,13 @@ def event_button(bot, update):
         if action == "001":
             db.trains.update({"id": event_id}, {"$push": {"attendee": query.message.chat.username}}, upsert=True)
             bot.sendMessage(text="Отлично, записались!", chat_id=query.message.chat_id)
-            bot.sendMessage(text="Ждем тебя {} в {}".format(event["start"]["dateTime"].split("T")[0],
-                                                            event["start"]["dateTime"].split("T")[1][:5]),
-                            chat_id=query.message.chat_id)
-            all_events(bot, update)
+            if event["start"]["dateTime"].split("T")[1][:5] != "00:00":
+                bot.sendMessage(text="Ждем тебя {} в {}".format(event["start"]["dateTime"].split("T")[0],
+                                                                event["start"]["dateTime"].split("T")[1][:5]),
+                                chat_id=query.message.chat_id)
+            else:
+                bot.sendMessage(text="Ждем тебя {}".format(event["start"]["dateTime"].split("T")[0]),
+                                chat_id=query.message.chat_id)
         elif action == "002":
             event_loc(bot, query, event)
         elif action == "003":
@@ -239,10 +242,13 @@ def event_button(bot, update):
         if action == "101":
             db.events.update({"id": event_id}, {"$push": {"attendee": query.message.chat.username}}, upsert=True)
             bot.sendMessage(text="Отлично, записались!", chat_id=query.message.chat_id)
-            bot.sendMessage(text="Ждем тебя {} в {}".format(event["start"]["dateTime"].split("T")[0],
-                                                            event["start"]["dateTime"].split("T")[1][:5]),
-                            chat_id=query.message.chat_id)
-            all_events(bot, update)
+            if event["start"]["dateTime"].split("T")[1][:5] != "00:00":
+                bot.sendMessage(text="Ждем тебя {} в {}".format(event["start"]["dateTime"].split("T")[0],
+                                                                event["start"]["dateTime"].split("T")[1][:5]),
+                                chat_id=query.message.chat_id)
+            else:
+                bot.sendMessage(text="Ждем тебя {}".format(event["start"]["dateTime"].split("T")[0]),
+                                chat_id=query.message.chat_id)
         elif action == "102":
             event_loc(bot, query, event)
         elif action == "103":
@@ -366,12 +372,17 @@ def event_info(bot, update, event):
     """
 
     cal_event = dump_calendar_event(event["organizer"]["email"], event)
+    attendee_list = str()
 
-    if "description" in cal_event.keys():
-        text = "Описание события:\n" + cal_event["description"]
-        return text
+    if "attendee" in event.keys() and len(event["attendee"]) > 0:
+        for attendee in event["attendee"]:
+            attendee_list = attendee_list + " @" + attendee
+    if "description" in cal_event.keys() and attendee_list != "":
+        text = "На мероприятие собираются:" + attendee_list + "\n\nОписание события:\n\n" + cal_event["description"]
+    elif "description" in cal_event.keys() and attendee_list == "":
+        text = "На мероприятие пока никто не записался." + "\n\nОписание события:\n\n" + cal_event["description"]
     else:
-        text = "Описание не задано"
+        text = "Описание не задано."
 
     return text
 
@@ -440,7 +451,7 @@ def graceful(signum, frame):
     """
 
     print("Got CTRL+C")
-    exit (0)
+    exit(0)
 
 
 def main():
