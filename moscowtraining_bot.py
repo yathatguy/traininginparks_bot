@@ -259,7 +259,7 @@ def event_button(bot, update):
         events = list()
         if action == "201":
             for train in db.trains.find({}):
-                if query.message.chat.username in train["attendee"]:
+                if "attendee" in train.keys() and query.message.chat.username in train["attendee"]:
                     events.append(train["id"])
             if len(events) > 0:
                 bot.sendMessage(text="Список твоих тренировок:", chat_id=query.message.chat_id)
@@ -279,7 +279,7 @@ def event_button(bot, update):
                 bot.sendMessage(text="Ты никуда не записался(лась)", chat_id=query.message.chat_id)
         elif action == "202":
             for event in db.events.find({}):
-                if query.message.chat.username in event["attendee"]:
+                if "attendee" in event.keys() and query.message.chat.username in event["attendee"]:
                     events.append(event["id"])
             if len(events) > 0:
                 bot.sendMessage(text="Список твоих мероприятий:", chat_id=query.message.chat_id)
