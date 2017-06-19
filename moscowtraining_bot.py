@@ -265,11 +265,16 @@ def event_button(bot, update):
                 bot.sendMessage(text="Список твоих тренировок:", chat_id=query.message.chat_id)
                 for train_id in events:
                     train = db.trains.find_one({"id": train_id})
-                    bot.sendMessage(
-                        text="{}: {} с {} до {}".format(train["start"]["dateTime"].split("T")[0], train["summary"],
-                                                        train["start"]["dateTime"].split("T")[1][:5],
-                                                        train["end"]["dateTime"].split("T")[1][:5]),
-                        chat_id=query.message.chat_id)
+                    if train["start"]["dateTime"].split("T")[1][:5] == "00:00":
+                        bot.sendMessage(
+                            text="{}: {}".format(train["start"]["dateTime"].split("T")[0], train["summary"]),
+                            chat_id=query.message.chat_id)
+                    else:
+                        bot.sendMessage(
+                            text="{}: {} с {} до {}".format(train["start"]["dateTime"].split("T")[0], train["summary"],
+                                                            train["start"]["dateTime"].split("T")[1][:5],
+                                                            train["end"]["dateTime"].split("T")[1][:5]),
+                            chat_id=query.message.chat_id)
             else:
                 bot.sendMessage(text="Ты никуда не записался(лась)", chat_id=query.message.chat_id)
         elif action == "202":
@@ -280,11 +285,16 @@ def event_button(bot, update):
                 bot.sendMessage(text="Список твоих мероприятий:", chat_id=query.message.chat_id)
                 for event_id in events:
                     event = db.events.find_one({"id": event_id})
-                    bot.sendMessage(
-                        text="{}: {} с {} до {}".format(event["start"]["dateTime"].split("T")[0], event["summary"],
-                                                        event["start"]["dateTime"].split("T")[1][:5],
-                                                        event["end"]["dateTime"].split("T")[1][:5]),
-                        chat_id=query.message.chat_id)
+                    if event["start"]["dateTime"].split("T")[1][:5] == "00:00":
+                        bot.sendMessage(
+                            text="{}: {}".format(event["start"]["dateTime"].split("T")[0], event["summary"]),
+                            chat_id=query.message.chat_id)
+                    else:
+                        bot.sendMessage(
+                            text="{}: {} с {} до {}".format(event["start"]["dateTime"].split("T")[0], event["summary"],
+                                                            event["start"]["dateTime"].split("T")[1][:5],
+                                                            event["end"]["dateTime"].split("T")[1][:5]),
+                            chat_id=query.message.chat_id)
             else:
                 bot.sendMessage(text="Ты никуда не записался(лась)", chat_id=query.message.chat_id)
         else:
