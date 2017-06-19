@@ -35,7 +35,7 @@ logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname)s - %(message)s
 
 def botan_track(message, update):
     """
-    Call Bota API and send info
+    Call Bot API and send info
     :param message: message that was send to User
     :param update: telegram API state 
     :return: N/A
@@ -146,6 +146,14 @@ def train(bot, update):
 
 
 def event_keyboard(bot, update, event):
+    """
+    Create keyboard with inline buttons for trains and events
+    :param bot: telegram API object
+    :param update: telegram API state 
+    :param event: Event from MongoDB (train or event)
+    :return: inline keyboard markup
+    """
+
     # 001 - signup for train
     # 002 - location for train
     # 003 - info for train
@@ -200,12 +208,10 @@ def event_button(bot, update):
     """
 
     query = update.callback_query
-    logging.critical('callback: ' + query.data)
     connection = pymongo.MongoClient(os.environ['MONGODB_URI'])
     db = connection["heroku_r261ww1k"]
     action = query.data.split(";")[0]
     if action[0] == "0":
-        logging.critical('trains')
         event_id = query.data.split(";")[1]
         event = db.trains.find_one({"id": event_id})
         if action == "001":
@@ -228,7 +234,6 @@ def event_button(bot, update):
         else:
             pass
     elif action[0] == "1":
-        logging.critical('events')
         event_id = query.data.split(";")[1]
         event = db.events.find_one({"id": event_id})
         if action == "101":
@@ -251,32 +256,50 @@ def event_button(bot, update):
         else:
             pass
     elif action[0] == "2":
-        logging.critical('all events')
         events = list()
         if action == "201":
             for train in db.trains.find({}):
-                if query.message.chat.username in train["attendee"]:
+                if "attendee" in train.keys() and query.message.chat.username in train["attendee"]:
                     events.append(train["id"])
             if len(events) > 0:
-                logging.critical(events)
-                bot.sendMessage(text="Список твоих тренировок: " + events[0], chat_id=query.message.chat_id)
+                bot.sendMessage(text="Список твоих тренировок:", chat_id=query.message.chat_id)
+                for train_id in events:
+                    train = db.trains.find_one({"id": train_id})
+                    if train["start"]["dateTime"].split("T")[1][:5] == "00:00":
+                        bot.sendMessage(
+                            text="{}: {}".format(train["start"]["dateTime"].split("T")[0], train["summary"]),
+                            chat_id=query.message.chat_id)
+                    else:
+                        bot.sendMessage(
+                            text="{}: {} с {} до {}".format(train["start"]["dateTime"].split("T")[0], train["summary"],
+                                                            train["start"]["dateTime"].split("T")[1][:5],
+                                                            train["end"]["dateTime"].split("T")[1][:5]),
+                            chat_id=query.message.chat_id)
             else:
-                logging.critical(events)
                 bot.sendMessage(text="Ты никуда не записался(лась)", chat_id=query.message.chat_id)
         elif action == "202":
             for event in db.events.find({}):
-                if query.message.chat.username in event["attendee"]:
+                if "attendee" in event.keys() and query.message.chat.username in event["attendee"]:
                     events.append(event["id"])
             if len(events) > 0:
-                logging.critical(events)
-                bot.sendMessage(text="Список твоих мероприятий: " + events[0], chat_id=query.message.chat_id)
+                bot.sendMessage(text="Список твоих мероприятий:", chat_id=query.message.chat_id)
+                for event_id in events:
+                    event = db.events.find_one({"id": event_id})
+                    if event["start"]["dateTime"].split("T")[1][:5] == "00:00":
+                        bot.sendMessage(
+                            text="{}: {}".format(event["start"]["dateTime"].split("T")[0], event["summary"]),
+                            chat_id=query.message.chat_id)
+                    else:
+                        bot.sendMessage(
+                            text="{}: {} с {} до {}".format(event["start"]["dateTime"].split("T")[0], event["summary"],
+                                                            event["start"]["dateTime"].split("T")[1][:5],
+                                                            event["end"]["dateTime"].split("T")[1][:5]),
+                            chat_id=query.message.chat_id)
             else:
-                logging.critical(events)
                 bot.sendMessage(text="Ты никуда не записался(лась)", chat_id=query.message.chat_id)
         else:
             pass
     else:
-        logging.critical('exit buttons')
         pass
     connection.close()
 
@@ -315,7 +338,7 @@ def event_loc(bot, update, event):
     """
     Send location information to User about signed event
     :param bot: telegram API object
-    :param update:  telegram API state
+    :param update: telegram API state
     :param event: event from MongoDB
     :return: N/A
     """
@@ -334,6 +357,14 @@ def event_loc(bot, update, event):
 
 
 def event_info(bot, update, event):
+    """
+    
+    :param bot: telegram API object
+    :param update: telegram API state
+    :param event: event from MongoDB
+    :return: event description from Google Calendar
+    """
+
     cal_event = dump_calendar_event(event["organizer"]["email"], event)
 
     if "description" in cal_event.keys():
@@ -346,6 +377,13 @@ def event_info(bot, update, event):
 
 
 def all_events(bot, update):
+    """
+    Inline button to list all events for a User
+    :param bot: telegram API object
+    :param update: telegram API state 
+    :return: N/A 
+    """
+
     if inspect.stack()[1][3] == 'train':
         kb = list()
         message = telegram.InlineKeyboardButton(text="куда уже ты записан(а)", callback_data="201")
