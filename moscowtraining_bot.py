@@ -2,10 +2,11 @@
 
 from __future__ import unicode_literals, print_function
 
+import inspect
 import logging
 import os
-import time
 import signal
+import time
 
 import pymongo
 import telegram
@@ -115,7 +116,6 @@ def reply(bot, update, text):
     :return: N/A
     """
 
-    # TODO: не найден chat_id
     bot.send_message(chat_id=update.message.chat.id, text=text)
     botan_track(update.message, update)
 
@@ -133,37 +133,64 @@ def train(bot, update):
         reply(bot, update, text="Расписание следующих тренировок:")
         botan_track(update.message, update)
         for event in events:
-            reply(bot, update,
-                  text="{}: {} с {} до {}".format(event["start"]["dateTime"].split("T")[0], event["summary"],
+            kb_markup = event_keyboard(bot, update, event)
+            update.message.reply_text(
+                text="{}: {} с {} до {}".format(event["start"]["dateTime"].split("T")[0], event["summary"],
                                                   event["start"]["dateTime"].split("T")[1][:5],
-                                                  event["end"]["dateTime"].split("T")[1][:5]))
+                                                event["end"]["dateTime"].split("T")[1][:5]), reply_markup=kb_markup)
             botan_track(update.message, update)
-        kb_markup = train_keyboard(bot, update, events)
-        update.message.reply_text('Давай запишемся на одну из тренировок:', reply_markup=kb_markup)
+        all_events(bot, update)
     else:
         reply(bot, update, text="Пока тренировки не запланированы. Восстанавливаемся!")
         botan_track(update.message, update)
 
 
-def train_keyboard(bot, update, events):
-    """
-    Create keyboard markup that can be shown to User
-    :param bot: telegram API object
-    :param update: telegram API state
-    :param events: list of events
-    :return: keyboard markup that can be shown to User
-    """
+def event_keyboard(bot, update, event):
+    # 001 - signup for train
+    # 002 - location for train
+    # 003 - info for train
+    # 004 - signout for train
+    # 101 - signup for event
+    # 102 - location for event
+    # 103 - info for event
+    # 104 - signout for event
+    # 201 - all trains
+    # 202 - all events
 
-    kb = []
-    for event in events:
-        text = "{}: {}".format(event["summary"], event["start"]["dateTime"].split("T")[0])
-        item = telegram.InlineKeyboardButton(text=text, callback_data=event["id"])
-        kb.append([item])
-    kb_markup = telegram.inlinekeyboardmarkup.InlineKeyboardMarkup(kb)
+    if inspect.stack()[1][3] == 'train':
+        kb = []
+        if "attendee" in event.keys() and update.message.from_user.username in event["attendee"]:
+            text_sign = "Не пойду!"
+            signup = telegram.InlineKeyboardButton(text=text_sign, callback_data="004;" + str(event["id"]))
+        else:
+            text_sign = "Пойду!"
+            signup = telegram.InlineKeyboardButton(text=text_sign, callback_data="001;" + str(event["id"]))
+        text_loc = "Где это?"
+        location = telegram.InlineKeyboardButton(text=text_loc, callback_data="002;" + str(event["id"]))
+        kb.append([signup, location])
+        kb_markup = telegram.inlinekeyboardmarkup.InlineKeyboardMarkup(kb)
+    elif inspect.stack()[1][3] == 'calendar':
+        kb = []
+
+        if "attendee" in event.keys() and update.message.from_user.username in event["attendee"]:
+            text_sign = "Не пойду!"
+            signup = telegram.InlineKeyboardButton(text=text_sign, callback_data="104;" + str(event["id"]))
+        else:
+            text_sign = "Пойду!"
+            signup = telegram.InlineKeyboardButton(text=text_sign, callback_data="101;" + str(event["id"]))
+        text_loc = "Где это?"
+        location = telegram.InlineKeyboardButton(text=text_loc, callback_data="102;" + str(event["id"]))
+        text_info = "Инфо"
+        info = telegram.InlineKeyboardButton(text=text_info, callback_data="103;" + str(event["id"]))
+        kb.append([signup])
+        kb.append([location, info])
+        kb_markup = telegram.inlinekeyboardmarkup.InlineKeyboardMarkup(kb)
+    else:
+        kb_markup = keyboard()
     return kb_markup
 
 
-def train_button(bot, update):
+def event_button(bot, update):
     """
     Get a User selected event from call back, add User to attendees list for the event
     and gives User info about selected event (date, time, location)
@@ -173,19 +200,84 @@ def train_button(bot, update):
     """
 
     query = update.callback_query
+    logging.critical('callback: ' + query.data)
     connection = pymongo.MongoClient(os.environ['MONGODB_URI'])
     db = connection["heroku_r261ww1k"]
-    if db.trains.find({"id": query.data, "attendee": query.message.chat.username}).count() == 0:
-        event = db.trains.find_one({"id": query.data})
-        db.trains.update({"id": query.data}, {"$push": {"attendee": query.message.chat.username}}, upsert=True)
-        bot.sendMessage(text="Отлично, записались!", chat_id=query.message.chat_id, message_id=query.message.message_id)
-        bot.sendMessage(text="Ждем тебя {} в {}".format(event["start"]["dateTime"].split("T")[0],
-                                                        event["start"]["dateTime"].split("T")[1][:5]),
-                        chat_id=query.message.chat_id, message_id=query.message.message_id)
-        event_loc(bot, query, event)
+    action = query.data.split(";")[0]
+    if action[0] == "0":
+        logging.critical('trains')
+        event_id = query.data.split(";")[1]
+        event = db.trains.find_one({"id": event_id})
+        if action == "001":
+            db.trains.update({"id": event_id}, {"$push": {"attendee": query.message.chat.username}}, upsert=True)
+            bot.sendMessage(text="Отлично, записались!", chat_id=query.message.chat_id)
+            bot.sendMessage(text="Ждем тебя {} в {}".format(event["start"]["dateTime"].split("T")[0],
+                                                            event["start"]["dateTime"].split("T")[1][:5]),
+                            chat_id=query.message.chat_id)
+            all_events(bot, update)
+        elif action == "002":
+            event_loc(bot, query, event)
+        elif action == "003":
+            text = event_info(bot, update, event)
+            bot.sendMessage(text=text, chat_id=query.message.chat_id)
+        elif action == "004":
+            event["attendee"].remove(query.message.chat.username)
+            db.trains.update({"id": event_id}, {"$set": {"attendee": event["attendee"]}})
+            bot.sendMessage(text="Жаль. Посмотри на другие тренировки. Возможно, что то подойтет тебе.",
+                            chat_id=query.message.chat_id)
+        else:
+            pass
+    elif action[0] == "1":
+        logging.critical('events')
+        event_id = query.data.split(";")[1]
+        event = db.events.find_one({"id": event_id})
+        if action == "101":
+            db.events.update({"id": event_id}, {"$push": {"attendee": query.message.chat.username}}, upsert=True)
+            bot.sendMessage(text="Отлично, записались!", chat_id=query.message.chat_id)
+            bot.sendMessage(text="Ждем тебя {} в {}".format(event["start"]["dateTime"].split("T")[0],
+                                                            event["start"]["dateTime"].split("T")[1][:5]),
+                            chat_id=query.message.chat_id)
+            all_events(bot, update)
+        elif action == "102":
+            event_loc(bot, query, event)
+        elif action == "103":
+            text = event_info(bot, update, event)
+            bot.sendMessage(text=text, chat_id=query.message.chat_id)
+        elif action == "104":
+            event["attendee"].remove(query.message.chat.username)
+            db.events.update({"id": event_id}, {"$set": {"attendee": event["attendee"]}})
+            bot.sendMessage(text="Жаль. Посмотри на другие тренировки. Возможно, что то подойтет тебе.",
+                            chat_id=query.message.chat_id)
+        else:
+            pass
+    elif action[0] == "2":
+        logging.critical('all events')
+        events = list()
+        if action == "201":
+            for train in db.trains.find({}):
+                if query.message.chat.username in train["attendee"]:
+                    events.append(train["id"])
+            if len(events) > 0:
+                logging.critical(events)
+                bot.sendMessage(text="Список твоих тренировок: " + events[0], chat_id=query.message.chat_id)
+            else:
+                logging.critical(events)
+                bot.sendMessage(text="Ты никуда не записался(лась)", chat_id=query.message.chat_id)
+        elif action == "202":
+            for event in db.events.find({}):
+                if query.message.chat.username in event["attendee"]:
+                    events.append(event["id"])
+            if len(events) > 0:
+                logging.critical(events)
+                bot.sendMessage(text="Список твоих мероприятий: " + events[0], chat_id=query.message.chat_id)
+            else:
+                logging.critical(events)
+                bot.sendMessage(text="Ты никуда не записался(лась)", chat_id=query.message.chat_id)
+        else:
+            pass
     else:
-        bot.sendMessage(text="Ты уже записан(а) на эту тренировку", chat_id=query.message.chat_id,
-                        message_id=query.message.message_id)
+        logging.critical('exit buttons')
+        pass
     connection.close()
 
 
@@ -202,18 +294,20 @@ def calendar(bot, update):
         reply(bot, update, text="Список предстоящих событий:")
         botan_track(update.message, update)
         for event in events:
+            kb_markup = event_keyboard(bot, update, event)
             if "date" in event["end"].keys():
-                reply(bot, update,
-                      text="{}: {}".format(event["start"]["dateTime"].split("T")[0], event["summary"]))
+                update.message.reply_text(
+                    text="{}: {}".format(event["start"]["dateTime"].split("T")[0], event["summary"]),
+                    reply_markup=kb_markup)
             else:
-                reply(bot, update,
-                      text="{}: {} с {} до {}".format(event["start"]["dateTime"].split("T")[0], event["summary"],
+                update.message.reply_text(
+                    text="{}: {} с {} до {}".format(event["start"]["dateTime"].split("T")[0], event["summary"],
                                                       event["start"]["dateTime"].split("T")[1][:5],
-                                                      event["end"]["dateTime"].split("T")[1][:5]))
-            event_loc(bot, update, event)
+                                                    event["end"]["dateTime"].split("T")[1][:5]), reply_markup=kb_markup)
             botan_track(update.message, update)
+        all_events(bot, update)
     else:
-        reply(bot, update, text="В календаре пока нет запланированных событий.")
+        bot.sendMessage(text="В календаре пока нет запланированных событий.")
         botan_track(update.message, update)
 
 
@@ -234,14 +328,42 @@ def event_loc(bot, update, event):
             bot.send_venue(chat_id=update.message.chat.id, latitude=coordinates["lat"], longitude=coordinates["lng"],
                            title=cal_event["summary"], address=cal_event["location"])
         else:
-            pass
+            reply(bot, update, text="Местоположение задано некорректно. Свяжитесь с организаторами мероприятия.")
+    else:
+        reply(bot, update, text="Местоположение не задано")
+
+
+def event_info(bot, update, event):
+    cal_event = dump_calendar_event(event["organizer"]["email"], event)
+
+    if "description" in cal_event.keys():
+        text = "Описание события:\n" + cal_event["description"]
+        return text
+    else:
+        text = "Описание не задано"
+
+    return text
+
+
+def all_events(bot, update):
+    if inspect.stack()[1][3] == 'train':
+        kb = list()
+        message = telegram.InlineKeyboardButton(text="куда уже ты записан(а)", callback_data="201")
+        kb.append([message])
+        kb_markup = telegram.inlinekeyboardmarkup.InlineKeyboardMarkup(kb)
+    elif inspect.stack()[1][3] == 'calendar':
+        kb = list()
+        message = telegram.InlineKeyboardButton(text="куда уже ты записан(а)", callback_data="202")
+        kb.append([message])
+        kb_markup = telegram.inlinekeyboardmarkup.InlineKeyboardMarkup(kb)
     else:
         pass
+    update.message.reply_text(text="Давай посмотрим", reply_markup=kb_markup)
 
 
 def feedback(bot, update):
     """
-    Handle 'feedback' command and callls message handler
+    Handle 'feedback' command and calls message handler
     :param bot: telegram API object
     :param update:  telegram API state
     :return: N/A 
@@ -310,7 +432,7 @@ def main():
     feedback_handler = CommandHandler("feedback", feedback)
     dispatcher.add_handler(feedback_handler)
 
-    updater.dispatcher.add_handler(CallbackQueryHandler(train_button))
+    updater.dispatcher.add_handler(CallbackQueryHandler(event_button))
 
     updater.dispatcher.add_handler(MessageHandler(filters=Filters.text, callback=handle_message))
 
