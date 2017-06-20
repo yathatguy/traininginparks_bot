@@ -52,14 +52,23 @@ def start(bot, update):
     :return: N/A
     """
 
-    if update.message.chat.username != '':
+    if update.message.chat.username == "":
+        kb = []
+        button = telegram.InlineKeyboardButton(text="Инструкции", callback_data="401")
+        kb.append([button])
+        kb_markup = telegram.inlinekeyboardmarkup.InlineKeyboardMarkup(kb)
+        kb_start = [[telegram.KeyboardButton('/start')]]
+        kb_markup_start = telegram.ReplyKeyboardMarkup(kb_start, resize_keyboard=False)
+        update.message.reply_text(
+            text="Привет!\n\nК сожалению Вы не установили username для своего telegram-аккаунта, и поэтому бот не сможет корректно для Вас работать.",
+            reply_markup=kb_markup_start)
+        update.message.reply_text(text="Хочешь посмотреть на инструкции, как это быстро и легко сделать?",
+                                  reply_markup=kb_markup)
+    else:
         kb_markup = keyboard()
         bot.send_message(chat_id=update.message.chat.id,
                          text="Добро пожаловать, @{}!".format(update.message.chat.username),
                          reply_markup=kb_markup)
-    else:
-        bot.send_message(chat_id=update.message.chat.id,
-                         text="""Привет!\n\nК сожалению Вы не установили username для своего telegram-аккаунта, и поэтому бот не сможет корректно для Вас работать.\n\nПример, как установить usernameб описан тут http://telegramzy.ru/nik-v-telegramm/""")
 
 
 def keyboard():
@@ -164,6 +173,7 @@ def event_keyboard(bot, update, event):
     # 104 - signout for event
     # 201 - all trains
     # 202 - all events
+    # 401 - username instruction
 
     if inspect.stack()[1][3] == 'train':
         kb = []
@@ -305,6 +315,21 @@ def event_button(bot, update):
                 bot.sendMessage(text="Ты никуда не записался(лась)", chat_id=query.message.chat_id)
         else:
             pass
+    elif action == "401":
+        bot.sendMessage(text="Открываем приложение.", chat_id=query.message.chat_id)
+        bot.sendMessage(text="Выбираем [Настройки].", chat_id=query.message.chat_id)
+        bot.sendPhoto(
+            photo="http://telegram-online.ru/wp-content/uploads/2015/11/kak-ustanovit-ili-pomenyat-imya-v-telegram-1-576x1024.jpg",
+            chat_id=query.message.chat_id)
+        bot.sendMessage(text="Кликаем на надпись 'Не задано'.", chat_id=query.message.chat_id)
+        bot.sendPhoto(
+            photo="http://telegram-online.ru/wp-content/uploads/2015/11/kak-ustanovit-ili-pomenyat-imya-v-telegram-2-576x1024.jpg",
+            chat_id=query.message.chat_id)
+        bot.sendMessage(text="Пишем подходящий ник и жмем галочку в правом верхнем углу.",
+                        chat_id=query.message.chat_id)
+        bot.sendPhoto(
+            photo="http://telegram-online.ru/wp-content/uploads/2015/11/kak-ustanovit-ili-pomenyat-imya-v-telegram-3.jpg",
+            chat_id=query.message.chat_id)
     else:
         pass
     connection.close()
