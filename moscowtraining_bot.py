@@ -265,7 +265,7 @@ def event_button(bot, update):
                 bot.sendMessage(text="Жаль. Посмотри на другие тренировки. Возможно, что то подойтет тебе.",
                                 chat_id=query.message.chat_id)
             except Exception as exc:
-                logging.exception(query.message.chat.username + ": " + exc)
+                logging.exception(exc)
         else:
             pass
     elif action[0] == "1":
@@ -297,7 +297,7 @@ def event_button(bot, update):
                 bot.sendMessage(text="Жаль. Посмотри на другие тренировки. Возможно, что то подойтет тебе.",
                                 chat_id=query.message.chat_id)
             except Exception as exc:
-                logging.exception(query.message.chat.username + ": " + exc)
+                logging.exception(exc)
         else:
             pass
     elif action[0] == "2":
