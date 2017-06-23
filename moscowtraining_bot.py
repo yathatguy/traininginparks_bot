@@ -239,50 +239,65 @@ def event_button(bot, update):
         event_id = query.data.split(";")[1]
         event = db.trains.find_one({"id": event_id})
         if action == "001":
-            db.trains.update({"id": event_id}, {"$push": {"attendee": query.message.chat.username}}, upsert=True)
-            bot.sendMessage(text="Отлично, записались!", chat_id=query.message.chat_id)
-            if event["start"]["dateTime"].split("T")[1][:5] != "00:00":
-                bot.sendMessage(text="Ждем тебя {} в {}".format(event["start"]["dateTime"].split("T")[0],
-                                                                event["start"]["dateTime"].split("T")[1][:5]),
-                                chat_id=query.message.chat_id)
+            if query.message.chat.username not in event["attendee"]:
+                db.trains.update({"id": event_id}, {"$push": {"attendee": query.message.chat.username}}, upsert=True)
+                bot.sendMessage(text="Отлично, записались!", chat_id=query.message.chat_id)
+                if event["start"]["dateTime"].split("T")[1][:5] != "00:00":
+                    bot.sendMessage(text="Ждем тебя {} в {}".format(event["start"]["dateTime"].split("T")[0],
+                                                                    event["start"]["dateTime"].split("T")[1][:5]),
+                                    chat_id=query.message.chat_id)
+                else:
+                    bot.sendMessage(text="Ждем тебя {}".format(event["start"]["dateTime"].split("T")[0]),
+                                    chat_id=query.message.chat_id)
             else:
-                bot.sendMessage(text="Ждем тебя {}".format(event["start"]["dateTime"].split("T")[0]),
-                                chat_id=query.message.chat_id)
+                bot.sendMessage(
+                    text="Ты уже записан на тренировку. Или ты хочешь выполнять в 2 раза больше повторений!? Скажи тренеру об этом перед начало 😉",
+                    chat_id=query.message.chat_id)
         elif action == "002":
             event_loc(bot, query, event)
         elif action == "003":
             text = event_info(bot, update, event)
             bot.sendMessage(text=text, chat_id=query.message.chat_id)
         elif action == "004":
-            event["attendee"].remove(query.message.chat.username)
-            db.trains.update({"id": event_id}, {"$set": {"attendee": event["attendee"]}})
-            bot.sendMessage(text="Жаль. Посмотри на другие тренировки. Возможно, что то подойтет тебе.",
-                            chat_id=query.message.chat_id)
+            try:
+                event["attendee"].remove(query.message.chat.username)
+                db.trains.update({"id": event_id}, {"$set": {"attendee": event["attendee"]}})
+                bot.sendMessage(text="Жаль. Посмотри на другие тренировки. Возможно, что то подойтет тебе.",
+                                chat_id=query.message.chat_id)
+            except Exception as exc:
+                logging.exception(query.message.chat.username + ": " + exc)
         else:
             pass
     elif action[0] == "1":
         event_id = query.data.split(";")[1]
         event = db.events.find_one({"id": event_id})
         if action == "101":
-            db.events.update({"id": event_id}, {"$push": {"attendee": query.message.chat.username}}, upsert=True)
-            bot.sendMessage(text="Отлично, записались!", chat_id=query.message.chat_id)
-            if event["start"]["dateTime"].split("T")[1][:5] != "00:00":
-                bot.sendMessage(text="Ждем тебя {} в {}".format(event["start"]["dateTime"].split("T")[0],
-                                                                event["start"]["dateTime"].split("T")[1][:5]),
-                                chat_id=query.message.chat_id)
+            if query.message.chat.username not in event["attendee"]:
+                db.events.update({"id": event_id}, {"$push": {"attendee": query.message.chat.username}}, upsert=True)
+                bot.sendMessage(text="Отлично, записались!", chat_id=query.message.chat_id)
+                if event["start"]["dateTime"].split("T")[1][:5] != "00:00":
+                    bot.sendMessage(text="Ждем тебя {} в {}".format(event["start"]["dateTime"].split("T")[0],
+                                                                    event["start"]["dateTime"].split("T")[1][:5]),
+                                    chat_id=query.message.chat_id)
+                else:
+                    bot.sendMessage(text="Ждем тебя {}".format(event["start"]["dateTime"].split("T")[0]),
+                                    chat_id=query.message.chat_id)
             else:
-                bot.sendMessage(text="Ждем тебя {}".format(event["start"]["dateTime"].split("T")[0]),
-                                chat_id=query.message.chat_id)
+                bot.sendMessage(
+                    text="Ты уже записан на это мероприятие.", chat_id=query.message.chat_id)
         elif action == "102":
             event_loc(bot, query, event)
         elif action == "103":
             text = event_info(bot, update, event)
             bot.sendMessage(text=text, chat_id=query.message.chat_id)
         elif action == "104":
-            event["attendee"].remove(query.message.chat.username)
-            db.events.update({"id": event_id}, {"$set": {"attendee": event["attendee"]}})
-            bot.sendMessage(text="Жаль. Посмотри на другие тренировки. Возможно, что то подойтет тебе.",
-                            chat_id=query.message.chat_id)
+            try:
+                event["attendee"].remove(query.message.chat.username)
+                db.events.update({"id": event_id}, {"$set": {"attendee": event["attendee"]}})
+                bot.sendMessage(text="Жаль. Посмотри на другие тренировки. Возможно, что то подойтет тебе.",
+                                chat_id=query.message.chat_id)
+            except Exception as exc:
+                logging.exception(query.message.chat.username + ": " + exc)
         else:
             pass
     elif action[0] == "2":
