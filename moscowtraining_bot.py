@@ -239,8 +239,8 @@ def event_button(bot, update):
         event_id = query.data.split(";")[1]
         event = db.trains.find_one({"id": event_id})
         if action == "001":
-            if "attendee" in event.key() or (
-                    "attendee" in event.key() and query.message.chat.username not in event["attendee"]):
+            if "attendee" in event.keys() or (
+                            "attendee" in event.keys() and query.message.chat.username not in event["attendee"]):
                 db.trains.update({"id": event_id}, {"$push": {"attendee": query.message.chat.username}}, upsert=True)
                 bot.sendMessage(text="Отлично, записались!", chat_id=query.message.chat_id)
                 if event["start"]["dateTime"].split("T")[1][:5] != "00:00":
@@ -273,8 +273,8 @@ def event_button(bot, update):
         event_id = query.data.split(";")[1]
         event = db.events.find_one({"id": event_id})
         if action == "101":
-            if "attendee" in event.key() or (
-                            "attendee" in event.key() and query.message.chat.username not in event["attendee"]):
+            if "attendee" in event.keys() or (
+                            "attendee" in event.keys() and query.message.chat.username not in event["attendee"]):
                 db.events.update({"id": event_id}, {"$push": {"attendee": query.message.chat.username}}, upsert=True)
                 bot.sendMessage(text="Отлично, записались!", chat_id=query.message.chat_id)
                 if event["start"]["dateTime"].split("T")[1][:5] != "00:00":
