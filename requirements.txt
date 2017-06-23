@@ -17,3 +17,4 @@ googlemaps==2.5.0
 idna==2.5
 requests==2.17.3
 urllib3==1.21.1
+xlrd==1.0.0

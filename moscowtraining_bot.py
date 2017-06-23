@@ -17,6 +17,8 @@ from telegram.ext import Updater, Filters
 from google_calendar import dump_calendar, dump_mongodb, get_events, dump_calendar_event
 from maps_api import get_coordinates
 from sendemail import send_email
+from wod import wod, wod_info, wod_by_mode, wod_by_modality, wod_amrap, wod_emom, wod_rt, wod_strength, wod_time, \
+    wod_modality
 
 # Set up Updater and Dispatcher
 
@@ -79,6 +81,7 @@ def keyboard():
 
     kb = [[telegram.KeyboardButton('/train'), telegram.KeyboardButton('/attendees')],
           [telegram.KeyboardButton('/calendar')],
+          [telegram.KeyboardButton('/wod'), telegram.KeyboardButton('/exercise')],
           [telegram.KeyboardButton('/feedback')]]
     kb_markup = telegram.ReplyKeyboardMarkup(kb, resize_keyboard=True)
 
@@ -145,7 +148,7 @@ def train(bot, update):
             kb_markup = event_keyboard(bot, update, event)
             update.message.reply_text(
                 text="{}: {} с {} до {}".format(event["start"]["dateTime"].split("T")[0], event["summary"],
-                                                  event["start"]["dateTime"].split("T")[1][:5],
+                                                event["start"]["dateTime"].split("T")[1][:5],
                                                 event["end"]["dateTime"].split("T")[1][:5]), reply_markup=kb_markup)
             botan_track(update.message, update)
         all_events(bot, update)
@@ -171,8 +174,19 @@ def event_keyboard(bot, update, event):
     # 102 - location for event
     # 103 - info for event
     # 104 - signout for event
+
     # 201 - all trains
     # 202 - all events
+
+    # 301 - wod by mode
+    # 302 - wod by modality
+    # 311 - wod mode: EMOM
+    # 321 - wod mode: AMRAP
+    # 331 - wod mode: For reps and time
+    # 341 - wod mode: For time
+    # 351 - wod mode: strength
+    # 312 - wod modality: selection
+
     # 401 - username instruction
 
     if inspect.stack()[1][3] == 'train':
@@ -315,6 +329,29 @@ def event_button(bot, update):
                 bot.sendMessage(text="Ты никуда не записался(лась)", chat_id=query.message.chat_id)
         else:
             pass
+    elif action[0] == "3":
+        if action == "301":
+            wod_by_mode(bot, update)
+        elif action == "303":
+            wod_info(bot, update)
+        elif action == "311":
+            wod_emom(bot, update)
+        elif action == "321":
+            wod_amrap(bot, update)
+        elif action == "331":
+            wod_rt(bot, update)
+        elif action == "341":
+            wod_time(bot, update)
+        elif action == "351":
+            wod_strength(bot, update)
+        elif action == "302":
+            wod_by_modality(bot, update)
+        elif action == "312":
+            modality_str = query.data.split(";")[1]
+            modality = modality_str.split(", ")
+            wod_modality(bot, update, modality)
+        else:
+            pass
     elif action == "401":
         bot.sendMessage(text="Открываем приложение.", chat_id=query.message.chat_id)
         bot.sendMessage(text="Выбираем [Настройки].", chat_id=query.message.chat_id)
@@ -330,6 +367,18 @@ def event_button(bot, update):
         bot.sendPhoto(
             photo="http://telegram-online.ru/wp-content/uploads/2015/11/kak-ustanovit-ili-pomenyat-imya-v-telegram-3.jpg",
             chat_id=query.message.chat_id)
+    elif action == "wod_emom":
+        wod_emom(bot, update)
+    elif action == "wod_amrap":
+        wod_amrap(bot, update)
+    elif action == "wod_rt":
+        wod_rt(bot, update)
+    elif action == "wod_time":
+        wod_time(bot, update)
+    elif action == "wod_strength":
+        wod_strength(bot, update)
+    elif action == "wod_modality":
+        wod_modality(bot, update, query.data.split(";")[1].split(", "))
     else:
         pass
     connection.close()
@@ -356,7 +405,7 @@ def calendar(bot, update):
             else:
                 update.message.reply_text(
                     text="{}: {} с {} до {}".format(event["start"]["dateTime"].split("T")[0], event["summary"],
-                                                      event["start"]["dateTime"].split("T")[1][:5],
+                                                    event["start"]["dateTime"].split("T")[1][:5],
                                                     event["end"]["dateTime"].split("T")[1][:5]), reply_markup=kb_markup)
             botan_track(update.message, update)
         all_events(bot, update)
@@ -389,7 +438,7 @@ def event_loc(bot, update, event):
 
 def event_info(bot, update, event):
     """
-    
+
     :param bot: telegram API object
     :param update: telegram API state
     :param event: event from MongoDB
@@ -467,6 +516,10 @@ def handle_message(bot, update):
     old_message = update.message
 
 
+def exercise(bot, update):
+    bot.send_message(chat_id=update.message.chat.id, text="Тут будет описание упражений.")
+
+
 def graceful(signum, frame):
     """
     Graceful exit
@@ -499,6 +552,12 @@ def main():
 
     train_handler = CommandHandler("attendees", attendees)
     dispatcher.add_handler(train_handler)
+
+    wod_handler = CommandHandler("wod", wod)
+    dispatcher.add_handler(wod_handler)
+
+    exercise_handler = CommandHandler("exercise", exercise)
+    dispatcher.add_handler(exercise_handler)
 
     calendar_handler = CommandHandler("calendar", calendar)
     dispatcher.add_handler(calendar_handler)
