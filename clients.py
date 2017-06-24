@@ -6,11 +6,11 @@ import logging
 
 import pymongo
 
-# connection = pymongo.MongoClient(os.environ['MONGODB_URI'])
-# db = connection["heroku_r261ww1k"]
+connection = pymongo.MongoClient(os.environ['MONGODB_URI'])
+db = connection["heroku_r261ww1k"]
 
-connection = pymongo.MongoClient()
-db = connection["clients"]
+# connection = pymongo.MongoClient()
+# db = connection["clients"]
 
 if "clients" not in db.collection_names() or db.clients.count() == 0:
     db.clients.insert({"username": "", "name": "", "surname": ""})
