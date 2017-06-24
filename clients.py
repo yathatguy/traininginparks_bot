@@ -25,8 +25,9 @@ def log_client(bot, update):
             client["name"] = update.message.chat.first_name
         if update.message.chat.last_name:
             client["surname"] = update.message.chat.last_name
+        if update.message.chat.id:
+            client["chat_id"] = update.message.chat.id
         db.clients.insert(client)
-
 
 def main():
     pass
