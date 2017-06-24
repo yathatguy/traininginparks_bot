@@ -14,6 +14,7 @@ from telegram.contrib.botan import Botan
 from telegram.ext import CommandHandler, CallbackQueryHandler, MessageHandler
 from telegram.ext import Updater, Filters
 
+from clients import log_client
 from google_calendar import dump_calendar, dump_mongodb, get_events, dump_calendar_event
 from maps_api import get_coordinates
 from sendemail import send_email
@@ -71,6 +72,7 @@ def start(bot, update):
         bot.send_message(chat_id=update.message.chat.id,
                          text="Добро пожаловать, @{}!".format(update.message.chat.username),
                          reply_markup=kb_markup)
+        log_client(bot, update)
 
 
 def keyboard():
