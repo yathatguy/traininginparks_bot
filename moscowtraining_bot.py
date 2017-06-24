@@ -55,6 +55,11 @@ def start(bot, update):
     :return: N/A
     """
 
+    if update.message.chat.type == "group":
+        bot.sendMessage(text="Не-не, в группах я отказываюсь работать, я стеснительный. Пиши мне только тет-а-тет 😉",
+                        chat_id=update.message.chat.id)
+        return
+
     if update.message.chat.username == "":
         kb = []
         button = telegram.InlineKeyboardButton(text="Инструкции", callback_data="401")
@@ -97,6 +102,11 @@ def attendees(bot, update):
     :param update: telegram API state
     :return: N/A
     """
+
+    if update.message.chat.type == "group":
+        bot.sendMessage(text="Не-не, в группах я отказываюсь работать, я стеснительный. Пиши мне только тет-а-тет 😉",
+                        chat_id=update.message.chat.id)
+        return
 
     events = get_events("trains", 5)
     if events:
@@ -141,6 +151,11 @@ def train(bot, update):
     :param update: telegram API state
     :return: N/A
     """
+
+    if update.message.chat.type == "group":
+        bot.sendMessage(text="Не-не, в группах я отказываюсь работать, я стеснительный. Пиши мне только тет-а-тет 😉",
+                        chat_id=update.message.chat.id)
+        return
 
     events = get_events("trains", 5)
     if events:
@@ -253,7 +268,7 @@ def event_button(bot, update):
                                     chat_id=query.message.chat_id)
             else:
                 bot.sendMessage(
-                    text="Ты уже записан на тренировку. Или ты хочешь выполнять в 2 раза больше повторений!? Скажи тренеру об этом перед начало 😉",
+                    text="Ты уже записан на тренировку. Или ты хочешь выполнять в 2 раза больше повторений!? Скажи тренеру об этом перед началом 😉",
                     chat_id=query.message.chat_id)
         elif action == "002":
             event_loc(bot, query, event)
@@ -409,6 +424,11 @@ def calendar(bot, update):
     :return: N/A
     """
 
+    if update.message.chat.type == "group":
+        bot.sendMessage(text="Не-не, в группах я отказываюсь работать, я стеснительный. Пиши мне только тет-а-тет 😉",
+                        chat_id=update.message.chat.id)
+        return
+
     events = get_events("events", 20)
     if events:
         reply(bot, update, text="Список предстоящих событий:")
@@ -509,6 +529,11 @@ def feedback(bot, update):
     :return: N/A 
     """
 
+    if update.message.chat.type == "group":
+        bot.sendMessage(text="Не-не, в группах я отказываюсь работать, я стеснительный. Пиши мне только тет-а-тет 😉",
+                        chat_id=update.message.chat.id)
+        return
+
     global old_message
     old_message = update.message
     bot.send_message(chat_id=update.message.chat.id,
@@ -534,6 +559,11 @@ def handle_message(bot, update):
 
 
 def exercise(bot, update):
+    if update.message.chat.type == "group":
+        bot.sendMessage(text="Не-не, в группах я отказываюсь работать, я стеснительный. Пиши мне только тет-а-тет 😉",
+                        chat_id=update.message.chat.id)
+        return
+
     bot.send_message(chat_id=update.message.chat.id, text="Тут будет описание упражений.")
 
 
