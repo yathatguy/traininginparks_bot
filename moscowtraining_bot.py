@@ -86,10 +86,10 @@ def keyboard():
     :return: keyboard markup object
     """
 
-    kb = [[telegram.KeyboardButton('/train'), telegram.KeyboardButton('/attendees')],
-          [telegram.KeyboardButton('/calendar')],
-          [telegram.KeyboardButton('/wod'), telegram.KeyboardButton('/exercise')],
-          [telegram.KeyboardButton('/feedback')]]
+    kb = [[telegram.KeyboardButton('/Треня'), telegram.KeyboardButton('/Кто_тренит?')],
+          [telegram.KeyboardButton('/Календарь')],
+          [telegram.KeyboardButton('/WOD'), telegram.KeyboardButton('/Упражнения')],
+          [telegram.KeyboardButton('/Отзыв')]]
     kb_markup = telegram.ReplyKeyboardMarkup(kb, resize_keyboard=True)
 
     return kb_markup
@@ -103,7 +103,7 @@ def attendees(bot, update):
     :return: N/A
     """
 
-    if update.message.chat.type == "group":
+    if update.message.chat.type in ["group", "supergroup", "channel"]:
         bot.sendMessage(text="Не-не, в группах я отказываюсь работать, я стеснительный. Пиши мне только тет-а-тет 😉",
                         chat_id=update.message.chat.id)
         return
@@ -209,10 +209,10 @@ def event_keyboard(bot, update, event):
     if inspect.stack()[1][3] == 'train':
         kb = []
         if "attendee" in event.keys() and update.message.from_user.username in event["attendee"]:
-            text_sign = "Не пойду!"
+            text_sign = "Не хочу туда!"
             signup = telegram.InlineKeyboardButton(text=text_sign, callback_data="004;" + str(event["id"]))
         else:
-            text_sign = "Пойду!"
+            text_sign = "Хочу туда!"
             signup = telegram.InlineKeyboardButton(text=text_sign, callback_data="001;" + str(event["id"]))
         text_loc = "Где это?"
         location = telegram.InlineKeyboardButton(text=text_loc, callback_data="002;" + str(event["id"]))
@@ -222,10 +222,10 @@ def event_keyboard(bot, update, event):
         kb = []
 
         if "attendee" in event.keys() and update.message.from_user.username in event["attendee"]:
-            text_sign = "Не пойду!"
+            text_sign = "Не хочу туда!"
             signup = telegram.InlineKeyboardButton(text=text_sign, callback_data="104;" + str(event["id"]))
         else:
-            text_sign = "Пойду!"
+            text_sign = "Хочу туда!"
             signup = telegram.InlineKeyboardButton(text=text_sign, callback_data="101;" + str(event["id"]))
         text_loc = "Где это?"
         location = telegram.InlineKeyboardButton(text=text_loc, callback_data="102;" + str(event["id"]))
@@ -311,7 +311,7 @@ def event_button(bot, update):
             try:
                 event["attendee"].remove(query.message.chat.username)
                 db.events.update({"id": event_id}, {"$set": {"attendee": event["attendee"]}})
-                bot.sendMessage(text="Жаль. Посмотри на другие тренировки. Возможно, что то подойтет тебе.",
+                bot.sendMessage(text="Жаль. Посмотри на другие мероприятия. Возможно, что то подойтет тебе.",
                                 chat_id=query.message.chat_id)
             except Exception as exc:
                 logging.exception(exc)
@@ -508,17 +508,17 @@ def all_events(bot, update):
 
     if inspect.stack()[1][3] == 'train':
         kb = list()
-        message = telegram.InlineKeyboardButton(text="куда уже ты записан(а)", callback_data="201")
+        message = telegram.InlineKeyboardButton(text="Давай посмотрим", callback_data="201")
         kb.append([message])
         kb_markup = telegram.inlinekeyboardmarkup.InlineKeyboardMarkup(kb)
     elif inspect.stack()[1][3] == 'calendar':
         kb = list()
-        message = telegram.InlineKeyboardButton(text="куда уже ты записан(а)", callback_data="202")
+        message = telegram.InlineKeyboardButton(text="Давай посмотрим", callback_data="202")
         kb.append([message])
         kb_markup = telegram.inlinekeyboardmarkup.InlineKeyboardMarkup(kb)
     else:
         pass
-    update.message.reply_text(text="Давай посмотрим", reply_markup=kb_markup)
+    update.message.reply_text(text="А ты идешь с нами!? 😉", reply_markup=kb_markup)
 
 
 def feedback(bot, update):
@@ -594,22 +594,22 @@ def main():
     start_handler = CommandHandler("start", start)
     dispatcher.add_handler(start_handler)
 
-    train_handler = CommandHandler("train", train)
+    train_handler = CommandHandler("Треня", train)
     dispatcher.add_handler(train_handler)
 
-    train_handler = CommandHandler("attendees", attendees)
+    train_handler = CommandHandler("Кто_тренит?", attendees)
     dispatcher.add_handler(train_handler)
 
-    wod_handler = CommandHandler("wod", wod)
+    wod_handler = CommandHandler("WOD", wod)
     dispatcher.add_handler(wod_handler)
 
-    exercise_handler = CommandHandler("exercise", exercise)
+    exercise_handler = CommandHandler("Упражнения", exercise)
     dispatcher.add_handler(exercise_handler)
 
-    calendar_handler = CommandHandler("calendar", calendar)
+    calendar_handler = CommandHandler("Календарь", calendar)
     dispatcher.add_handler(calendar_handler)
 
-    feedback_handler = CommandHandler("feedback", feedback)
+    feedback_handler = CommandHandler("Отзыв", feedback)
     dispatcher.add_handler(feedback_handler)
 
     updater.dispatcher.add_handler(CallbackQueryHandler(event_button))
