@@ -55,7 +55,7 @@ def start(bot, update):
     :return: N/A
     """
 
-    if update.message.chat.type == "group":
+    if update.message.chat.type in ["group", "supergroup", "channel"]:
         bot.sendMessage(text="Не-не, в группах я отказываюсь работать, я стеснительный. Пиши мне только тет-а-тет 😉",
                         chat_id=update.message.chat.id)
         return
@@ -86,10 +86,10 @@ def keyboard():
     :return: keyboard markup object
     """
 
-    kb = [[telegram.KeyboardButton('/Треня'), telegram.KeyboardButton('/Кто_тренит?')],
-          [telegram.KeyboardButton('/Календарь')],
-          [telegram.KeyboardButton('/WOD'), telegram.KeyboardButton('/Упражнения')],
-          [telegram.KeyboardButton('/Отзыв')]]
+    kb = [[telegram.KeyboardButton('/train'), telegram.KeyboardButton('/attendees')],
+          [telegram.KeyboardButton('/calendar')],
+          [telegram.KeyboardButton('/wod'), telegram.KeyboardButton('/exercises')],
+          [telegram.KeyboardButton('/feedback')]]
     kb_markup = telegram.ReplyKeyboardMarkup(kb, resize_keyboard=True)
 
     return kb_markup
@@ -594,22 +594,22 @@ def main():
     start_handler = CommandHandler("start", start)
     dispatcher.add_handler(start_handler)
 
-    train_handler = CommandHandler("Треня", train)
+    train_handler = CommandHandler("train", train)
     dispatcher.add_handler(train_handler)
 
-    train_handler = CommandHandler("Кто_тренит?", attendees)
+    train_handler = CommandHandler("attendees", attendees)
     dispatcher.add_handler(train_handler)
 
-    wod_handler = CommandHandler("WOD", wod)
+    wod_handler = CommandHandler("wod", wod)
     dispatcher.add_handler(wod_handler)
 
-    exercise_handler = CommandHandler("Упражнения", exercise)
+    exercise_handler = CommandHandler("exercises", exercise)
     dispatcher.add_handler(exercise_handler)
 
-    calendar_handler = CommandHandler("Календарь", calendar)
+    calendar_handler = CommandHandler("calendar", calendar)
     dispatcher.add_handler(calendar_handler)
 
-    feedback_handler = CommandHandler("Отзыв", feedback)
+    feedback_handler = CommandHandler("feedback", feedback)
     dispatcher.add_handler(feedback_handler)
 
     updater.dispatcher.add_handler(CallbackQueryHandler(event_button))
