@@ -55,7 +55,7 @@ def start(bot, update):
     :return: N/A
     """
 
-    if update.message.chat.type == "group":
+    if update.message.chat.type in ["group", "supergroup", "channel"]:
         bot.sendMessage(text="Не-не, в группах я отказываюсь работать, я стеснительный. Пиши мне только тет-а-тет 😉",
                         chat_id=update.message.chat.id)
         return
@@ -152,7 +152,7 @@ def train(bot, update):
     :return: N/A
     """
 
-    if update.message.chat.type == "group":
+    if update.message.chat.type in ["group", "supergroup", "channel"]:
         bot.sendMessage(text="Не-не, в группах я отказываюсь работать, я стеснительный. Пиши мне только тет-а-тет 😉",
                         chat_id=update.message.chat.id)
         return
@@ -424,7 +424,7 @@ def calendar(bot, update):
     :return: N/A
     """
 
-    if update.message.chat.type == "group":
+    if update.message.chat.type in ["group", "supergroup", "channel"]:
         bot.sendMessage(text="Не-не, в группах я отказываюсь работать, я стеснительный. Пиши мне только тет-а-тет 😉",
                         chat_id=update.message.chat.id)
         return
@@ -529,7 +529,7 @@ def feedback(bot, update):
     :return: N/A 
     """
 
-    if update.message.chat.type == "group":
+    if update.message.chat.type in ["group", "supergroup", "channel"]:
         bot.sendMessage(text="Не-не, в группах я отказываюсь работать, я стеснительный. Пиши мне только тет-а-тет 😉",
                         chat_id=update.message.chat.id)
         return
@@ -559,7 +559,7 @@ def handle_message(bot, update):
 
 
 def exercise(bot, update):
-    if update.message.chat.type == "group":
+    if update.message.chat.type in ["group", "supergroup", "channel"]:
         bot.sendMessage(text="Не-не, в группах я отказываюсь работать, я стеснительный. Пиши мне только тет-а-тет 😉",
                         chat_id=update.message.chat.id)
         return
