@@ -86,10 +86,10 @@ def keyboard():
     :return: keyboard markup object
     """
 
-    kb = [[telegram.KeyboardButton('/Треня'), telegram.KeyboardButton('/Кто_тренит?')],
-          [telegram.KeyboardButton('/Календарь')],
-          [telegram.KeyboardButton('/WOD'), telegram.KeyboardButton('/Упражнения')],
-          [telegram.KeyboardButton('/Отзыв')]]
+    kb = [[telegram.KeyboardButton('/train'), telegram.KeyboardButton('/attendees')],
+          [telegram.KeyboardButton('/calendar')],
+          [telegram.KeyboardButton('/wod'), telegram.KeyboardButton('/exercises')],
+          [telegram.KeyboardButton('/feedback')]]
     kb_markup = telegram.ReplyKeyboardMarkup(kb, resize_keyboard=True)
 
     return kb_markup
@@ -537,7 +537,7 @@ def feedback(bot, update):
     global old_message
     old_message = update.message
     bot.send_message(chat_id=update.message.chat.id,
-                     text="Оставьте свой отзыв о работе бота. Вместе мы сделаем его лучше!",
+                     text="Оставьте свой feedback о работе бота. Вместе мы сделаем его лучше!",
                      reply_markup=telegram.ReplyKeyboardRemove())
 
 
@@ -554,7 +554,7 @@ def handle_message(bot, update):
             and "/feedback" in old_message.parse_entities(types="bot_command").values():
         send_email(update.message)
         kb_markup = keyboard()
-        bot.send_message(chat_id=update.message.chat.id, text="Ваш отзыв принят, спасибо.", reply_markup=kb_markup)
+        bot.send_message(chat_id=update.message.chat.id, text="Ваш feedback принят, спасибо.", reply_markup=kb_markup)
     old_message = update.message
 
 
@@ -594,22 +594,22 @@ def main():
     start_handler = CommandHandler("start", start)
     dispatcher.add_handler(start_handler)
 
-    train_handler = CommandHandler("Треня", train)
+    train_handler = CommandHandler("train", train)
     dispatcher.add_handler(train_handler)
 
-    train_handler = CommandHandler("Кто_тренит?", attendees)
+    train_handler = CommandHandler("attendees", attendees)
     dispatcher.add_handler(train_handler)
 
-    wod_handler = CommandHandler("WOD", wod)
+    wod_handler = CommandHandler("wod", wod)
     dispatcher.add_handler(wod_handler)
 
-    exercise_handler = CommandHandler("Упражнения", exercise)
+    exercise_handler = CommandHandler("exercises", exercise)
     dispatcher.add_handler(exercise_handler)
 
-    calendar_handler = CommandHandler("Календарь", calendar)
+    calendar_handler = CommandHandler("calendar", calendar)
     dispatcher.add_handler(calendar_handler)
 
-    feedback_handler = CommandHandler("Отзыв", feedback)
+    feedback_handler = CommandHandler("feedback", feedback)
     dispatcher.add_handler(feedback_handler)
 
     updater.dispatcher.add_handler(CallbackQueryHandler(event_button))
