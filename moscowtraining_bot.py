@@ -11,21 +11,24 @@ import time
 import pymongo
 import telegram
 from telegram.contrib.botan import Botan
-from telegram.ext import CommandHandler, CallbackQueryHandler, MessageHandler
+from telegram.ext import CommandHandler, CallbackQueryHandler, MessageHandler, ConversationHandler
 from telegram.ext import Updater, Filters
 
 from clients import log_client
 from google_calendar import dump_calendar, dump_mongodb, get_events, dump_calendar_event
 from maps_api import get_coordinates
 from sendemail import send_email
+from whiteboard import whiteboard, whiteboard_add, whiteboard_results
 from wod import wod, wod_info, wod_by_mode, wod_by_modality, wod_amrap, wod_emom, wod_rt, wod_strength, wod_time, \
     wod_modality
 
 # Set up Updater and Dispatcher
 
-updater = Updater(token=os.environ['TOKEN'])
+# updater = Updater(token=os.environ['TOKEN'])
+updater = Updater('370932219:AAGXeZFMAuY9vJYSt5qns274i1von1cvY4I')
 updater.stop()
 dispatcher = updater.dispatcher
+TIME = range(1)
 
 # Set up Botan
 
@@ -64,7 +67,7 @@ def start(bot, update):
         kb = []
         button = telegram.InlineKeyboardButton(text="Инструкции", callback_data="401")
         kb.append([button])
-        kb_markup = telegram.inlinekeyboardmarkup.InlineKeyboardMarkup(kb)
+        kb_markup = telegram.InlineKeyboardMarkup(kb)
         kb_start = [[telegram.KeyboardButton('/start')]]
         kb_markup_start = telegram.ReplyKeyboardMarkup(kb_start, resize_keyboard=False)
         update.message.reply_text(
@@ -206,6 +209,8 @@ def event_keyboard(bot, update, event):
 
     # 401 - username instruction
 
+    # 501 - whiteboard
+
     if inspect.stack()[1][3] == 'train':
         kb = []
         if "attendee" in event.keys() and update.message.from_user.username in event["attendee"]:
@@ -217,7 +222,7 @@ def event_keyboard(bot, update, event):
         text_loc = "Где это?"
         location = telegram.InlineKeyboardButton(text=text_loc, callback_data="002;" + str(event["id"]))
         kb.append([signup, location])
-        kb_markup = telegram.inlinekeyboardmarkup.InlineKeyboardMarkup(kb)
+        kb_markup = telegram.InlineKeyboardMarkup(kb)
     elif inspect.stack()[1][3] == 'calendar':
         kb = []
 
@@ -233,7 +238,7 @@ def event_keyboard(bot, update, event):
         info = telegram.InlineKeyboardButton(text=text_info, callback_data="103;" + str(event["id"]))
         kb.append([signup])
         kb.append([location, info])
-        kb_markup = telegram.inlinekeyboardmarkup.InlineKeyboardMarkup(kb)
+        kb_markup = telegram.InlineKeyboardMarkup(kb)
     else:
         kb_markup = keyboard()
     return kb_markup
@@ -411,6 +416,10 @@ def event_button(bot, update):
         wod_strength(bot, update)
     elif action == "wod_modality":
         wod_modality(bot, update, query.data.split(";")[1].split(", "))
+    elif action == "501":
+        whiteboard_results(bot, update, query.data.split(";")[1])
+    elif action == "502":
+        whiteboard_add(bot, update, query.data.split(";")[1])
     else:
         pass
     connection.close()
@@ -510,12 +519,12 @@ def all_events(bot, update):
         kb = list()
         message = telegram.InlineKeyboardButton(text="Давай посмотрим", callback_data="201")
         kb.append([message])
-        kb_markup = telegram.inlinekeyboardmarkup.InlineKeyboardMarkup(kb)
+        kb_markup = telegram.InlineKeyboardMarkup(kb)
     elif inspect.stack()[1][3] == 'calendar':
         kb = list()
         message = telegram.InlineKeyboardButton(text="Давай посмотрим", callback_data="202")
         kb.append([message])
-        kb_markup = telegram.inlinekeyboardmarkup.InlineKeyboardMarkup(kb)
+        kb_markup = telegram.InlineKeyboardMarkup(kb)
     else:
         pass
     update.message.reply_text(text="А ты идешь с нами!? 😉", reply_markup=kb_markup)
@@ -548,7 +557,6 @@ def handle_message(bot, update):
     :param update:  telegram API state
     :return: N/A 
     """
-
     global old_message
     if ('old_message' in vars() or 'old_message' in globals()) \
             and "/feedback" in old_message.parse_entities(types="bot_command").values():
@@ -558,27 +566,10 @@ def handle_message(bot, update):
     old_message = update.message
 
 
-def whiteboard(bot, update):
-    if update.message.chat.type in ["group", "supergroup", "channel"]:
-        bot.sendMessage(text="Не-не, в группах я отказываюсь работать, я стеснительный. Пиши мне только тет-а-тет 😉",
-                        chat_id=update.message.chat.id)
-        return
+def cancel(bot, update):
+    bot.sendMessage(text="Это не время, а что то еще...", chat_id=update.message.chat.id)
 
-    connection = pymongo.MongoClient(os.environ['MONGODB_URI'])
-    db = connection["heroku_r261ww1k"]
-
-    if db.benchmarks.find({}).count() == 0:
-        bot.sendMessage(text="На данный момент у нас нет комплексов для оценки", chat_id=update.message.chat_id)
-        return
-
-    benchmarks = db.benchmarks.find({})
-    kb = []
-    for benchmark in benchmarks:
-        button = telegram.InlineKeyboardButton(text=benchmark["name"], callback_data=benchmark["name"])
-        kb.append([button])
-    kb_markup = telegram.inlinekeyboardmarkup.InlineKeyboardMarkup(kb)
-    bot.sendMessage(text="Выбирай комплекс:", reply_markup=kb_markup)
-    connection.close()
+    return ConversationHandler.END
 
 
 def graceful(signum, frame):
@@ -591,6 +582,10 @@ def graceful(signum, frame):
 
     print("Got CTRL+C")
     exit(0)
+
+
+def error(bot, update, error):
+    logging.critical('Update "%s" caused error "%s"' % (update, error))
 
 
 def main():
@@ -626,15 +621,26 @@ def main():
     feedback_handler = CommandHandler("feedback", feedback)
     dispatcher.add_handler(feedback_handler)
 
+    conv_handler = ConversationHandler(
+        entry_points=[whiteboard_handler],
+        states={
+            TIME: [MessageHandler(Filters.text, whiteboard)]
+        },
+
+        fallbacks=[CommandHandler('cancel', cancel)]
+    )
+    dispatcher.add_handler(conv_handler)
+
     updater.dispatcher.add_handler(CallbackQueryHandler(event_button))
 
     updater.dispatcher.add_handler(MessageHandler(filters=Filters.text, callback=handle_message))
 
+    # log all errors
+    updater.dispatcher.add_error_handler(error)
+
     # Poll user actions
 
     updater.start_polling()
-
-    # Update trains and events from calendar every 60 secs
 
     starttime = time.time()
 
