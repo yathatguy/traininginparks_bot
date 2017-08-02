@@ -88,7 +88,7 @@ def keyboard():
 
     kb = [[telegram.KeyboardButton('/train'), telegram.KeyboardButton('/attendees')],
           [telegram.KeyboardButton('/calendar')],
-          [telegram.KeyboardButton('/wod'), telegram.KeyboardButton('/exercises')],
+          [telegram.KeyboardButton('/wod'), telegram.KeyboardButton('/whiteboard')],
           [telegram.KeyboardButton('/feedback')]]
     kb_markup = telegram.ReplyKeyboardMarkup(kb, resize_keyboard=True)
 
@@ -558,13 +558,27 @@ def handle_message(bot, update):
     old_message = update.message
 
 
-def exercise(bot, update):
+def whiteboard(bot, update):
     if update.message.chat.type in ["group", "supergroup", "channel"]:
         bot.sendMessage(text="Не-не, в группах я отказываюсь работать, я стеснительный. Пиши мне только тет-а-тет 😉",
                         chat_id=update.message.chat.id)
         return
 
-    bot.send_message(chat_id=update.message.chat.id, text="Тут будет описание упражений.")
+    connection = pymongo.MongoClient(os.environ['MONGODB_URI'])
+    db = connection["heroku_r261ww1k"]
+
+    if db.benchmarks.find({}).count() == 0:
+        bot.sendMessage(text="На данный момент у нас нет комплексов для оценки", chat_id=update.message.chat_id)
+        return
+
+    benchmarks = db.benchmarks.find({})
+    kb = []
+    for benchmark in benchmarks:
+        button = telegram.InlineKeyboardButton(text=benchmark["name"], callback_data=benchmark["name"])
+        kb.append([button])
+    kb_markup = telegram.inlinekeyboardmarkup.InlineKeyboardMarkup(kb)
+    bot.sendMessage(text="Выбирай комплекс:", reply_markup=kb_markup)
+    connection.close()
 
 
 def graceful(signum, frame):
@@ -603,8 +617,8 @@ def main():
     wod_handler = CommandHandler("wod", wod)
     dispatcher.add_handler(wod_handler)
 
-    exercise_handler = CommandHandler("exercises", exercise)
-    dispatcher.add_handler(exercise_handler)
+    whiteboard_handler = CommandHandler("whiteboard", exercise)
+    dispatcher.add_handler(whiteboard_handler)
 
     calendar_handler = CommandHandler("calendar", calendar)
     dispatcher.add_handler(calendar_handler)
