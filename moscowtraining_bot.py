@@ -11,14 +11,14 @@ import time
 import pymongo
 import telegram
 from telegram.contrib.botan import Botan
-from telegram.ext import CommandHandler, CallbackQueryHandler, MessageHandler, ConversationHandler
+from telegram.ext import CommandHandler, CallbackQueryHandler, MessageHandler, ConversationHandler, RegexHandler
 from telegram.ext import Updater, Filters
 
 from clients import log_client
 from google_calendar import dump_calendar, dump_mongodb, get_events, dump_calendar_event
 from maps_api import get_coordinates
 from sendemail import send_email
-from whiteboard import whiteboard, whiteboard_add, whiteboard_results
+# from whiteboard import whiteboard, whiteboard_add, whiteboard_results
 from wod import wod, wod_info, wod_by_mode, wod_by_modality, wod_amrap, wod_emom, wod_rt, wod_strength, wod_time, \
     wod_modality
 
@@ -28,7 +28,6 @@ from wod import wod, wod_info, wod_by_mode, wod_by_modality, wod_amrap, wod_emom
 updater = Updater('370932219:AAGXeZFMAuY9vJYSt5qns274i1von1cvY4I')
 updater.stop()
 dispatcher = updater.dispatcher
-TIME = range(1)
 
 # Set up Botan
 
@@ -38,6 +37,7 @@ botan = Botan(os.environ['BOTAN_API_KEY'])
 
 logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.WARNING)
 
+TIME, NOTIME = range(2)
 
 def botan_track(message, update):
     """
@@ -419,7 +419,7 @@ def event_button(bot, update):
     elif action == "501":
         whiteboard_results(bot, update, query.data.split(";")[1])
     elif action == "502":
-        whiteboard_add(bot, update, query.data.split(";")[1])
+        whiteboard_add(bot, update, query.data.split(";")[1], user_data)
     else:
         pass
     connection.close()
@@ -566,6 +566,59 @@ def handle_message(bot, update):
     old_message = update.message
 
 
+def whiteboard(bot, update):
+    if update.message.chat.type in ["group", "supergroup", "channel"]:
+        bot.sendMessage(text="Не-не, в группах я отказываюсь работать, я стеснительный. Пиши мне только тет-а-тет 😉",
+                        chat_id=update.message.chat.id)
+        return
+
+    connection = pymongo.MongoClient(os.environ['MONGODB_URI'])
+    db = connection["heroku_r261ww1k"]
+
+    if db.benchmarks.find({}).count() == 0:
+        bot.sendMessage(text="На данный момент у нас нет комплексов для оценки", chat_id=update.message.chat_id)
+        return
+
+    benchmarks = db.benchmarks.find({})
+    kb = []
+    for benchmark in benchmarks:
+        button = telegram.InlineKeyboardButton(text=benchmark["name"], callback_data="501;" + benchmark["name"])
+        kb.append([button])
+    kb_markup = telegram.InlineKeyboardMarkup(kb)
+    update.message.reply_text(text="Выбирай комплекс:", reply_markup=kb_markup)
+    connection.close()
+
+
+def whiteboard_results(bot, update, benchmark_name):
+    connection = pymongo.MongoClient(os.environ['MONGODB_URI'])
+    db = connection["heroku_r261ww1k"]
+    benchmark = db.benchmarks.find_one({"name": benchmark_name})
+    bot.sendMessage(text=benchmark["name"], chat_id=update.callback_query.message.chat.id)
+    bot.sendMessage(text=benchmark["description"], chat_id=update.callback_query.message.chat.id)
+    if len(benchmark["results"]) == 0:
+        bot.sendMessage(text="Еще никто не записал свой результат. Ты можешь быть первым!",
+                        chat_id=update.callback_query.message.chat.id)
+    else:
+        for man in benchmark["results"]:
+            bot.sendMessage(text="@" + man["name"] + ":\t" + man["result"],
+                            chat_id=update.callback_query.message.chat.id)
+    connection.close()
+
+
+def whiteboard_add(bot, update, benchmark_name, user_data):
+    time = update
+    logging.critical(time)
+    connection = pymongo.MongoClient(os.environ['MONGODB_URI'])
+    db = connection["heroku_r261ww1k"]
+    benchmark = db.benchmarks.find_one({"name": benchmark_name})
+    db.benchmarks.update({"name": benchmark["name"]},
+                         {"$pull": {"results": {"name": update.callback_query.message.chat.username}}})
+    db.benchmarks.update({"name": benchmark["name"]}, {"$push": {
+        "results": {"$each": [{"name": update.callback_query.message.chat.username, "result": "0:00"}], "$sort": 1}}})
+    connection.close()
+    return TIME
+
+
 def cancel(bot, update):
     bot.sendMessage(text="Это не время, а что то еще...", chat_id=update.message.chat.id)
 
@@ -624,7 +677,7 @@ def main():
     conv_handler = ConversationHandler(
         entry_points=[whiteboard_handler],
         states={
-            TIME: [MessageHandler(Filters.text, whiteboard)]
+            TIME: [RegexHandler("^[0-9]+:[0-9][0-9]", whiteboard_add, pass_user_data=True)]
         },
 
         fallbacks=[CommandHandler('cancel', cancel)]
