@@ -617,7 +617,7 @@ def main():
     wod_handler = CommandHandler("wod", wod)
     dispatcher.add_handler(wod_handler)
 
-    whiteboard_handler = CommandHandler("whiteboard", exercise)
+    whiteboard_handler = CommandHandler("whiteboard", whiteboard)
     dispatcher.add_handler(whiteboard_handler)
 
     calendar_handler = CommandHandler("calendar", calendar)
