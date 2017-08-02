@@ -1,7 +1,7 @@
 email==4.0.2
 utils==0.9.0
 six==1.10.0
-python-telegram-bot==5.3.0
+python-telegram-bot==7.0.1
 future==0.16.0
 pymongo==3.3.1
 apiclient==1.0.3
@@ -18,3 +18,4 @@ idna==2.5
 requests==2.17.3
 urllib3==1.21.1
 xlrd==1.0.0
+certifi==2017.4.17
