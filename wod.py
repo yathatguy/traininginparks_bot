@@ -29,7 +29,7 @@ def wod(bot, update):
     info_button = telegram.InlineKeyboardButton(text="Информация", callback_data="303")
     kb.append([mode_button, modality_button])
     kb.append([info_button])
-    kb_markup = telegram.inlinekeyboardmarkup.InlineKeyboardMarkup(kb)
+    kb_markup = telegram.InlineKeyboardMarkup(kb)
     update.message.reply_text(text="По какому принципу будем искать?",
                               reply_markup=kb_markup)
 
@@ -44,7 +44,7 @@ def wod_by_mode(bot, update):
     kb.append([emom_button, amrap_button])
     kb.append([rt_button])
     kb.append([time_button, strength_button])
-    kb_markup = telegram.inlinekeyboardmarkup.InlineKeyboardMarkup(kb)
+    kb_markup = telegram.InlineKeyboardMarkup(kb)
     bot.send_message(chat_id=update.callback_query.message.chat.id, text="Выбирай:", reply_markup=kb_markup)
 
 
@@ -67,7 +67,7 @@ def wod_by_modality(bot, update):
             buttons = []
             buttons.append(button)
     kb.append(buttons)
-    kb_markup = telegram.inlinekeyboardmarkup.InlineKeyboardMarkup(kb)
+    kb_markup = telegram.InlineKeyboardMarkup(kb)
     bot.send_message(chat_id=update.callback_query.message.chat.id, text="Выбирай:", reply_markup=kb_markup)
 
 
@@ -102,7 +102,7 @@ def wod_text(bot, update, train, func):
     kb = []
     repeat_button = telegram.InlineKeyboardButton(text="Повторить поиск?", callback_data=func)
     kb.append([repeat_button])
-    kb_markup = telegram.inlinekeyboardmarkup.InlineKeyboardMarkup(kb)
+    kb_markup = telegram.InlineKeyboardMarkup(kb)
 
     bot.send_message(chat_id=update.callback_query.message.chat.id, text="Название: " + train["name"])
     bot.send_message(chat_id=update.callback_query.message.chat.id, text="Условия: " + train["mode"])
