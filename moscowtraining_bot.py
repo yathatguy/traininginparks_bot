@@ -563,6 +563,7 @@ def handle_message(bot, update):
         kb_markup = keyboard()
         bot.send_message(chat_id=update.message.chat.id, text="Ваш feedback принят, спасибо.", reply_markup=kb_markup)
     logging.critical(update.message.new_chat_members)
+    logging.critical(bot.get_chat_members_count)
     if len(update.message.new_chat_members) > 0:
         bot.sendMessage(text="Ммм... Свежее мясо!", chat_id=update.message.chat.id)
     old_message = update.message
