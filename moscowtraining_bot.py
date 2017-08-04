@@ -566,7 +566,8 @@ def handle_message(bot, update):
 
 
 def on_user_joins(bot, update):
-    if len(update.message.new_chat_members) > 0:
+    if len(update.message.new_chat_members) > 0 and update.message.chat.type in ["group", "supergroup"]:
+        log_client(bot, update)
         bot.sendMessage(text="Ммм... Свежее мясо!", chat_id=update.message.chat.id)
         bot.sendVideo(chat_id=update.message.chat.id, video="https://media.giphy.com/media/mDKCXYwoaoM5G/giphy.mp4")
 
