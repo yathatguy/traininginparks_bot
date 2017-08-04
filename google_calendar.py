@@ -132,7 +132,7 @@ def dump_mongodb(name, events):
     connection.close()
 
 
-def get_events(name, num):
+def get_events(name, rangelist):
     """
     Get list of dicts with events from Mongo DB
     :param num: number of event to request and possible return 
@@ -149,8 +149,8 @@ def get_events(name, num):
     events_list = list()
 
     events = db[name].find({'start.dateTime': {
-        '$gt': (datetime.datetime.utcnow() + datetime.timedelta(hours=3)).isoformat()[:19] + '+03:00'}},
-        limit=num).sort("start", pymongo.ASCENDING)
+        '$gt': (datetime.datetime.utcnow() + datetime.timedelta(hours=3)).isoformat()[:19] + '+03:00'}})
+    rangelist.sort("start", pymongo.ASCENDING)
     for event in events:
         events_list.append(event)
 
