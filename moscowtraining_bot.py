@@ -562,6 +562,7 @@ def handle_message(bot, update):
         send_email(update.message)
         kb_markup = keyboard()
         bot.send_message(chat_id=update.message.chat.id, text="Ваш feedback принят, спасибо.", reply_markup=kb_markup)
+    logging.critical(update)
     if update.message.new_chat_members != None:
         bot.sendMessage(text="Ммм... Свежее мясо!")
     old_message = update.message
