@@ -24,7 +24,8 @@ from wod import wod, wod_info, wod_by_mode, wod_by_modality, wod_amrap, wod_emom
 
 # Set up Updater and Dispatcher
 
-updater = Updater(token=os.environ['TOKEN'])
+# updater = Updater(token=os.environ['TOKEN'])
+updater = Updater('370932219:AAGXeZFMAuY9vJYSt5qns274i1von1cvY4I')
 updater.stop()
 dispatcher = updater.dispatcher
 
@@ -562,11 +563,13 @@ def handle_message(bot, update):
         send_email(update.message)
         kb_markup = keyboard()
         bot.send_message(chat_id=update.message.chat.id, text="Ваш feedback принят, спасибо.", reply_markup=kb_markup)
-    logging.critical(update.message.new_chat_members)
-    logging.critical(bot.get_chat_members_count)
+    old_message = update.message
+
+
+def on_user_joins(bot, update):
     if len(update.message.new_chat_members) > 0:
         bot.sendMessage(text="Ммм... Свежее мясо!", chat_id=update.message.chat.id)
-    old_message = update.message
+        bot.sendVideo(chat_id=update.message.chat.id, video="https://media.giphy.com/media/mDKCXYwoaoM5G/giphy.mp4")
 
 
 def whiteboard(bot, update):
@@ -676,6 +679,9 @@ def main():
 
     feedback_handler = CommandHandler("feedback", feedback)
     dispatcher.add_handler(feedback_handler)
+
+    newuser_handler = MessageHandler(Filters.group, on_user_joins)
+    dispatcher.add_handler(newuser_handler)
 
     conv_handler = ConversationHandler(
         entry_points=[whiteboard_handler],
