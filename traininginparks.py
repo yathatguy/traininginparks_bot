@@ -31,8 +31,10 @@ step = 5
 
 def start(bot, update):
     if update.message.chat.type in ["group", "supergroup", "channel"]:
+        kb_markup = keyboard()
         bot.sendMessage(text="Не-не, в группах я отказываюсь работать, я стеснительный. Пиши мне только тет-а-тет 😉",
-                        chat_id=update.message.chat.id)
+                        chat_id=update.message.chat.id,
+                        reply_markup=kb_markup)
         return
 
     if update.message.chat.username == "":
