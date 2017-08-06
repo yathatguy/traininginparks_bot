@@ -240,7 +240,6 @@ def event_keyboard(bot, update, event):
         kb_markup = keyboard()
     return kb_markup
 
-
 def event_button(bot, update):
     """
     Get a User selected event from call back, add User to attendees list for the event

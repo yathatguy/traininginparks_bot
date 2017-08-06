@@ -8,7 +8,7 @@ import os
 import pymongo
 
 
-def get_events(db_name):
+def get_things(db_name):
     """
     Get list of dicts with events from Mongo DB
     :param num: number of event to request and possible return 
@@ -35,7 +35,7 @@ def get_events(db_name):
     return events_list
 
 
-def get_event(db_name, id):
+def get_thing(db_name, id):
     connection = pymongo.MongoClient(os.environ['MONGODB_URI'])
     db = connection["heroku_r261ww1k"]
 
@@ -44,6 +44,7 @@ def get_event(db_name, id):
     connection.close()
 
     return event
+
 
 def main():
     """
