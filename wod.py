@@ -24,9 +24,9 @@ def wod(bot, update):
 
     bot.send_message(chat_id=update.message.chat.id, text="Давай подберем тебе териновку!")
     kb = []
-    mode_button = telegram.InlineKeyboardButton(text="by mode", callback_data="301")
-    modality_button = telegram.InlineKeyboardButton(text="by modailty", callback_data="302")
-    info_button = telegram.InlineKeyboardButton(text="Информация", callback_data="303")
+    mode_button = telegram.InlineKeyboardButton(text="by mode", callback_data="401")
+    modality_button = telegram.InlineKeyboardButton(text="by modailty", callback_data="402")
+    info_button = telegram.InlineKeyboardButton(text="Информация", callback_data="403")
     kb.append([mode_button, modality_button])
     kb.append([info_button])
     kb_markup = telegram.InlineKeyboardMarkup(kb)
@@ -36,11 +36,11 @@ def wod(bot, update):
 
 def wod_by_mode(bot, update):
     kb = []
-    emom_button = telegram.InlineKeyboardButton(text="EMOM", callback_data="311")
-    amrap_button = telegram.InlineKeyboardButton(text="AMRAP", callback_data="321")
-    rt_button = telegram.InlineKeyboardButton(text="For reps and time", callback_data="331")
-    time_button = telegram.InlineKeyboardButton(text="For time", callback_data="341")
-    strength_button = telegram.InlineKeyboardButton(text="Strength", callback_data="351")
+    emom_button = telegram.InlineKeyboardButton(text="EMOM", callback_data="411")
+    amrap_button = telegram.InlineKeyboardButton(text="AMRAP", callback_data="421")
+    rt_button = telegram.InlineKeyboardButton(text="For reps and time", callback_data="431")
+    time_button = telegram.InlineKeyboardButton(text="For time", callback_data="441")
+    strength_button = telegram.InlineKeyboardButton(text="Strength", callback_data="451")
     kb.append([emom_button, amrap_button])
     kb.append([rt_button])
     kb.append([time_button, strength_button])
@@ -59,7 +59,7 @@ def wod_by_modality(bot, update):
     buttons = []
     for modality in itertools.groupby(sorted(modality_list)):
         modality_str = ", ".join(modality[0])
-        button = telegram.InlineKeyboardButton(text=modality_str, callback_data="312;" + modality_str)
+        button = telegram.InlineKeyboardButton(text=modality_str, callback_data="412;" + modality_str)
         if len(buttons) % 3 != 0:
             buttons.append(button)
         else:
