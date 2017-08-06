@@ -1,1 +1,1 @@
-worker: python2 moscowtraining_bot.py
+worker: python2 traininginparks.py
