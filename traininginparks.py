@@ -84,12 +84,11 @@ def train(bot, update):
         return
 
     trains = get_events("trains")
+    kb = []
     if trains:
         iter = 0
         step = 5
         next = iter + step
-        kb = []
-
         for train in trains[iter:next]:
             button = text = train["start"]["date"] + ":\t" + train["summary"]
             kb.append([button])
@@ -102,11 +101,15 @@ def train(bot, update):
         bot.sendMessage(bot, update, text="Пока тренировки не запланированы. Восстанавливаемся!",
                         chat_id=update.message.chat.id)
         logging.critical("no trains")
+        kb = []
+        bot.sendMessage(text="Пока тренировки не запланированы. Восстанавливаемся!", chat_id=update.message.chat.id,
+                        reply_markup=keyboard())
         return ConversationHandler.END
 
 
 def train_details(bot, update):
     logging.critical("train_details")
+    logging.critical(update.message)
 
 
 def cancel(bot, update):
@@ -116,7 +119,7 @@ def cancel(bot, update):
 
 
 def main():
-    logging.critical('trainigninparks bot script')
+    logging.info('start trainigninparks bot script')
 
     # Set up handlers
 
