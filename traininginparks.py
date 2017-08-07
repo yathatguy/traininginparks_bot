@@ -80,7 +80,7 @@ def get_trains(bot, update):
         next = iter + step
         for train in trains_list[iter:next]:
             button = telegram.InlineKeyboardButton(text=train["start"]["date"] + ":\t" + train["summary"],
-                                                   callback_data="100;" + train["id"])
+                                                   callback_data="200;" + train["id"])
             kb.append([button])
             iter += 1
         kb_markup = telegram.InlineKeyboardMarkup(kb)
