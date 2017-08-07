@@ -21,8 +21,8 @@ from wod import wod, wod_info, wod_by_mode, wod_by_modality, wod_amrap, wod_emom
     wod_modality
 
 # Set up Updater and Dispatcher
-
-updater = Updater(token=os.environ['TOKEN'])
+updater = Updater('370932219:AAGXeZFMAuY9vJYSt5qns274i1von1cvY4I')
+# updater = Updater(token=os.environ['TOKEN'])
 updater.stop()
 dispatcher = updater.dispatcher
 

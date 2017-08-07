@@ -25,10 +25,8 @@ def get_things(db_name):
     # Get events
 
     things_list = list()
-
-    things = db[db_name].find({'start.dateTime': {
-        '$gt': (datetime.datetime.utcnow() + datetime.timedelta(hours=3)).isoformat()[:19] + '+03:00'}}).sort(
-        "start.date", pymongo.ASCENDING)
+    today = datetime.date.today().isoformat()
+    things = db[db_name].find({'start.date': {'$gte': today}}).sort("start.date", pymongo.ASCENDING)
     for thing in things:
         things_list.append(thing)
     connection.close()
