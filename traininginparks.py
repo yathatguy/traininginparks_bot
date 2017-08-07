@@ -21,7 +21,8 @@ from wod import wod, wod_info, wod_by_mode, wod_by_modality, wod_amrap, wod_emom
     wod_modality
 
 # Set up Updater and Dispatcher
-updater = Updater(token=os.environ['TOKEN'])
+updater = Updater('370932219:AAGXeZFMAuY9vJYSt5qns274i1von1cvY4I')
+# updater = Updater(token=os.environ['TOKEN'])
 updater.stop()
 dispatcher = updater.dispatcher
 
@@ -73,9 +74,11 @@ def get_trains(bot, update):
     trains_list = get_things(db_name)
     if trains_list:
         iter = 0
-        step = 5
         next = iter + step
-        thing_list(bot, update, db_name, iter, next)
+        if len(trains_list) <= next:
+            thing_list(bot, update, db_name, iter, next, skip_pager=True)
+        elif len(trains_list) > next:
+            thing_list(bot, update, db_name, iter, next)
     else:
         bot.sendMessage(text="Пока тренировки не запланированы. Восстанавливаемся!", chat_id=update.message.chat.id,
                         reply_markup=keyboard())
@@ -90,15 +93,17 @@ def get_events(bot, update):
     events_list = get_things(db_name)
     if events_list:
         iter = 0
-        step = 5
         next = iter + step
-        thing_list(bot, update, db_name, iter, next)
+        if len(events_list) <= next:
+            thing_list(bot, update, db_name, iter, next, skip_pager=True)
+        else:
+            thing_list(bot, update, db_name, iter, next)
     else:
         bot.sendMessage(text="Пока мероприятия не запланированы. Восстанавливаемся!", chat_id=update.message.chat.id,
                         reply_markup=keyboard())
 
 
-def thing_list(bot, update, db_name, iter, next):
+def thing_list(bot, update, db_name, iter, next, *args, **kwargs):
     try:
         chat_id = update.message.chat.id
     except:
@@ -117,7 +122,9 @@ def thing_list(bot, update, db_name, iter, next):
             return []
         kb.append([button])
         iter += 1
-    kb.append(pager(bot, update, db_name, iter, step, next))
+    skip_pager = kwargs.get("skip_pager", False)
+    if not skip_pager:
+        kb.append(pager(bot, update, db_name, iter, step, next))
     kb_markup = telegram.InlineKeyboardMarkup(kb)
     if db_name == "trains":
         bot.sendMessage(text="Расписание следующих тренировок:", chat_id=chat_id, reply_markup=kb_markup)
