@@ -27,11 +27,11 @@ def get_things(db_name):
     things_list = list()
 
     things = db[db_name].find({'start.dateTime': {
-        '$gt': (datetime.datetime.utcnow() + datetime.timedelta(hours=3)).isoformat()[:19] + '+03:00'}}).sort("start",
-                                                                                                              pymongo.ASCENDING)
+        '$gt': (datetime.datetime.utcnow() + datetime.timedelta(hours=3)).isoformat()[:19] + '+03:00'}}).sort(
+        "start.date",
+        pymongo.ASCENDING)
     for thing in things:
         things_list.append(thing)
-
     connection.close()
     return things_list
 
@@ -42,7 +42,6 @@ def get_thing(db_name, id):
     event = db[db_name].find_one({"id": id})
     event = json.loads(json_util.dumps(event))
     connection.close()
-
     return event
 
 
