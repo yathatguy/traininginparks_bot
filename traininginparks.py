@@ -14,7 +14,9 @@ from telegram.ext import CommandHandler, ConversationHandler, RegexHandler, Call
 from telegram.ext import Updater
 
 from clients import log_client
+from decorators import only_private
 from google_calendar import dump_calendar_event, dump_calendar, dump_mongodb
+from keyboard import keyboard
 from maps_api import get_coordinates
 from mongodata import get_things, get_thing
 from wod import wod, wod_info, wod_by_mode, wod_by_modality, wod_amrap, wod_emom, wod_rt, wod_strength, wod_time, \
@@ -29,12 +31,8 @@ dispatcher = updater.dispatcher
 step = 5
 
 
+@only_private
 def start(bot, update):
-    if update.message.chat.type in ["group", "supergroup", "channel"]:
-        bot.sendMessage(text="Не-не, в группах я отказываюсь работать, я стеснительный. Пиши мне только тет-а-тет 😉",
-                        chat_id=update.message.chat.id)
-        return
-
     if update.message.chat.username == "":
         kb = []
         button = telegram.InlineKeyboardButton(text="Инструкции", callback_data="000")
@@ -56,20 +54,8 @@ def start(bot, update):
         log_client(bot, update)
 
 
-def keyboard():
-    kb = [[telegram.KeyboardButton('🏃 Треня'), telegram.KeyboardButton('🏅 Мероприятия')],
-          [telegram.KeyboardButton('🙏 Участники'), telegram.KeyboardButton('💪 Мои тренировки')],
-          [telegram.KeyboardButton('🏋 WOD'), telegram.KeyboardButton('🏁 Соревнования')]]
-    kb_markup = telegram.ReplyKeyboardMarkup(kb, resize_keyboard=True)
-
-    return kb_markup
-
-
+@only_private
 def get_trains(bot, update):
-    if update.message.chat.type in ["group", "supergroup", "channel"]:
-        bot.sendMessage(text="Не-не, в группах я отказываюсь работать, я стеснительный. Пиши мне только тет-а-тет 😉",
-                        chat_id=update.message.chat.id)
-        return
     db_name = "trains"
     trains_list = get_things(db_name)
     if trains_list:
@@ -84,11 +70,8 @@ def get_trains(bot, update):
                         reply_markup=keyboard())
 
 
+@only_private
 def get_events(bot, update):
-    if update.message.chat.type in ["group", "supergroup", "channel"]:
-        bot.sendMessage(text="Не-не, в группах я отказываюсь работать, я стеснительный. Пиши мне только тет-а-тет 😉",
-                        chat_id=update.message.chat.id)
-        return
     db_name = "events"
     events_list = get_things(db_name)
     if events_list:
@@ -227,12 +210,8 @@ def sign_in(bot, update, db_name, thing_id):
     connection.close()
 
 
+@only_private
 def attendees(bot, update):
-    if update.message.chat.type in ["group", "supergroup", "channel"]:
-        bot.sendMessage(text="Не-не, в группах я отказываюсь работать, я стеснительный. Пиши мне только тет-а-тет 😉",
-                        chat_id=update.message.chat.id)
-        return
-
     kb = []
     train_att = telegram.InlineKeyboardButton(text="Кто записан на тренировки?", callback_data="501")
     event_att = telegram.InlineKeyboardButton(text="Кто записан на мероприятия?", callback_data="502")
@@ -314,11 +293,8 @@ def event_info(bot, update, event_id):
         bot.sendMessage(text="Описание не задано", chat_id=update.callback_query.message.chat.id)
 
 
+@only_private
 def attendee(bot, update):
-    if update.message.chat.type in ["group", "supergroup", "channel"]:
-        bot.sendMessage(text="Не-не, в группах я отказываюсь работать, я стеснительный. Пиши мне только тет-а-тет 😉",
-                        chat_id=update.message.chat.id)
-        return
     bot.sendMessage(text="Твои тренировки:", chat_id=update.message.chat.id)
     trains = get_things("trains")
     if trains:
@@ -355,12 +331,8 @@ def attendee(bot, update):
                         reply_markup=keyboard())
 
 
+@only_private
 def whiteboard(bot, update):
-    if update.message.chat.type in ["group", "supergroup", "channel"]:
-        bot.sendMessage(text="Не-не, в группах я отказываюсь работать, я стеснительный. Пиши мне только тет-а-тет 😉",
-                        chat_id=update.message.chat.id)
-        return
-
     connection = pymongo.MongoClient(os.environ['MONGODB_URI'])
     db = connection["heroku_r261ww1k"]
 
@@ -590,7 +562,6 @@ def main():
         sleep(60.0 - ((time() - starttime) % 60.0))
 
     updater.idle()
-
 
 if __name__ == '__main__':
     main()

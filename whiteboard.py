@@ -7,14 +7,12 @@ import os
 import pymongo
 import telegram
 
+from decorators import only_private
 
+
+@only_private
 def whiteboard(bot, update):
     logging.critical("whiteboard")
-    if update.message.chat.type in ["group", "supergroup", "channel"]:
-        bot.sendMessage(text="Не-не, в группах я отказываюсь работать, я стеснительный. Пиши мне только тет-а-тет 😉",
-                        chat_id=update.message.chat.id)
-        return
-
     connection = pymongo.MongoClient(os.environ['MONGODB_URI'])
     db = connection["heroku_r261ww1k"]
 
