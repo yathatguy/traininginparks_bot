@@ -564,7 +564,6 @@ def main():
     # Poll user actions
 
     updater.start_polling()
-    updater.idle()
 
     starttime = time()
 
@@ -585,6 +584,7 @@ def main():
 
         sleep(60.0 - ((time() - starttime) % 60.0))
 
+    updater.idle()
 
 
 if __name__ == '__main__':
