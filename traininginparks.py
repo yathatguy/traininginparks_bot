@@ -70,19 +70,13 @@ def get_trains(bot, update):
         bot.sendMessage(text="Не-не, в группах я отказываюсь работать, я стеснительный. Пиши мне только тет-а-тет 😉",
                         chat_id=update.message.chat.id)
         return
-
-    trains_list = get_things("trains")
-    kb = []
+    db_name = "trains"
+    trains_list = get_things(db_name)
     if trains_list:
         iter = 0
+        step = 5
         next = iter + step
-        for train in trains_list[iter:next]:
-            button = telegram.InlineKeyboardButton(text=train["start"]["date"] + ":\t" + train["summary"],
-                                                   callback_data="100;" + train["id"])
-            kb.append([button])
-            iter += 1
-        kb_markup = telegram.InlineKeyboardMarkup(kb)
-        bot.sendMessage(text="Расписание следующих тренировок:", chat_id=update.message.chat.id, reply_markup=kb_markup)
+        thing_list(bot, update, db_name, iter, next)
     else:
         bot.sendMessage(text="Пока тренировки не запланированы. Восстанавливаемся!", chat_id=update.message.chat.id,
                         reply_markup=keyboard())
@@ -101,7 +95,7 @@ def get_events(bot, update):
         next = iter + step
         thing_list(bot, update, db_name, iter, next)
     else:
-        bot.sendMessage(text="Пока тренировки не запланированы. Восстанавливаемся!", chat_id=update.message.chat.id,
+        bot.sendMessage(text="Пока мероприятия не запланированы. Восстанавливаемся!", chat_id=update.message.chat.id,
                         reply_markup=keyboard())
 
 
@@ -126,7 +120,13 @@ def thing_list(bot, update, db_name, iter, next):
         iter += 1
     kb.append(pager(bot, update, db_name, iter, step, next))
     kb_markup = telegram.InlineKeyboardMarkup(kb)
-    bot.sendMessage(text="Расписание следующих мероприятий:", chat_id=chat_id, reply_markup=kb_markup)
+    if db_name == "trains":
+        bot.sendMessage(text="Расписание следующих тренировок:", chat_id=chat_id, reply_markup=kb_markup)
+    elif db_name == "events":
+        bot.sendMessage(text="Расписание следующих мероприятий:", chat_id=chat_id, reply_markup=kb_markup)
+    else:
+        logging.critical("thing_list: db error: " + db_name)
+
     return thing_list
 
 
