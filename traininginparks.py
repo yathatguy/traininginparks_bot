@@ -367,7 +367,7 @@ def whiteboard(bot, update):
         bot.sendMessage(text="На данный момент у нас нет комплексов для оценки", chat_id=update.message.chat_id)
         return
 
-    benchmarks = db.benchmarks.find({})
+    benchmarks = db.benchmarks.find({}).sort("date", pymongo.DESCENDING)
     kb = []
     for benchmark in benchmarks:
         button = telegram.InlineKeyboardButton(text=benchmark["name"], callback_data="601;" + benchmark["name"])
