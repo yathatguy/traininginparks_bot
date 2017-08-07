@@ -21,8 +21,8 @@ from wod import wod, wod_info, wod_by_mode, wod_by_modality, wod_amrap, wod_emom
     wod_modality
 
 # Set up Updater and Dispatcher
-
-updater = Updater(token=os.environ['TOKEN'])
+updater = Updater('370932219:AAGXeZFMAuY9vJYSt5qns274i1von1cvY4I')
+# updater = Updater(token=os.environ['TOKEN'])
 updater.stop()
 dispatcher = updater.dispatcher
 
@@ -31,10 +31,8 @@ step = 5
 
 def start(bot, update):
     if update.message.chat.type in ["group", "supergroup", "channel"]:
-        kb_markup = keyboard()
         bot.sendMessage(text="Не-не, в группах я отказываюсь работать, я стеснительный. Пиши мне только тет-а-тет 😉",
-                        chat_id=update.message.chat.id,
-                        reply_markup=kb_markup)
+                        chat_id=update.message.chat.id)
         return
 
     if update.message.chat.username == "":
@@ -80,7 +78,7 @@ def get_trains(bot, update):
         next = iter + step
         for train in trains_list[iter:next]:
             button = telegram.InlineKeyboardButton(text=train["start"]["date"] + ":\t" + train["summary"],
-                                                   callback_data="200;" + train["id"])
+                                                   callback_data="100;" + train["id"])
             kb.append([button])
             iter += 1
         kb_markup = telegram.InlineKeyboardMarkup(kb)
@@ -118,10 +116,10 @@ def thing_list(bot, update, db_name, iter, next):
     for thing in thing_list:
         if db_name == "trains":
             button = telegram.InlineKeyboardButton(text=thing["start"]["date"] + ":\t" + thing["summary"],
-                                                   callback_data="200;" + thing["id"])
+                                                   callback_data="100;" + thing["id"])
         elif db_name == "events":
             button = telegram.InlineKeyboardButton(text=thing["start"]["date"] + ":\t" + thing["summary"],
-                                                   callback_data="300;" + thing["id"])
+                                                   callback_data="200;" + thing["id"])
         else:
             return []
         kb.append([button])
@@ -154,12 +152,12 @@ def train_details(bot, update, train):
     query = update.callback_query.message
     kb = []
     if "attendee" in train.keys() and query.chat.username in train["attendee"]:
-        text_sign = "✖️ Не смогу прийти"
+        text_sign = "❌ Не смогу прийти"
         signup = telegram.InlineKeyboardButton(text=text_sign, callback_data="101;" + str(train["id"]))
     else:
-        text_sign = "✔️ Записаться"
+        text_sign = "✅ Записаться"
         signup = telegram.InlineKeyboardButton(text=text_sign, callback_data="102;" + str(train["id"]))
-    text_loc = "Где это?"
+    text_loc = "🗺 Где это?"
     location = telegram.InlineKeyboardButton(text=text_loc, callback_data="103;" + str(train["id"]))
     kb.append([signup, location])
     kb_markup = telegram.InlineKeyboardMarkup(kb)
@@ -171,15 +169,15 @@ def event_details(bot, update, event):
     query = update.callback_query.message
     kb = []
     if "attendee" in event.keys() and query.chat.username in event["attendee"]:
-        text_sign = "✖️ Не смогу прийти"
+        text_sign = "❌ Не смогу прийти"
         signup = telegram.InlineKeyboardButton(text=text_sign, callback_data="201;" + str(event["id"]))
     else:
-        text_sign = "✔️ Записаться"
+        text_sign = "✅ Записаться"
         signup = telegram.InlineKeyboardButton(text=text_sign, callback_data="202;" + str(event["id"]))
-    text_loc = "Где это?"
+    text_loc = "🗺 Где это?"
     location = telegram.InlineKeyboardButton(text=text_loc, callback_data="203;" + str(event["id"]))
     kb.append([signup, location])
-    text_info = "Информация"
+    text_info = "📋 Информация"
     info = telegram.InlineKeyboardButton(text=text_info, callback_data="204;" + str(event["id"]))
     kb.append([info])
     kb_markup = telegram.InlineKeyboardMarkup(kb)
@@ -193,7 +191,7 @@ def sign_out(bot, update, db_name, thing_id):
     db = connection["heroku_r261ww1k"]
     try:
         thing["attendee"].remove(update.callback_query.message.chat.username)
-        db.events.update({"id": thing_id}, {"$set": {"attendee": thing["attendee"]}})
+        db[db_name].update({"id": thing_id}, {"$set": {"attendee": thing["attendee"]}})
         bot.sendMessage(text="Жаль. Посмотри на другие мероприятия. Возможно, что то подойтет тебе.",
                         chat_id=update.callback_query.message.chat_id)
     except Exception as exc:
@@ -398,10 +396,11 @@ def on_user_joins(bot, update):
 
 
 def text_processing(bot, update):
+
     # 000 - username instructions
     # 100 - trains
-    # 101 - event sign out
-    # 102 - event sign in
+    # 101 - train sign out
+    # 102 - train sign in
     # 200 - events
     # 201 - event sign out
     # 202 - event sign in
@@ -442,12 +441,16 @@ def text_processing(bot, update):
         bot.sendPhoto(
             photo="http://telegram-online.ru/wp-content/uploads/2015/11/kak-ustanovit-ili-pomenyat-imya-v-telegram-3.jpg",
             chat_id=update.callback_query.message.chat_id)
+    elif action == "100":
+        train_details(bot, update, get_thing("trains", details))
     elif action == "101":
         sign_out(bot, update, "trains", details)
     elif action == "102":
         sign_in(bot, update, "trains", details)
     elif action == "103":
         thing_loc(bot, update, "trains", details)
+    elif action == "200":
+        event_details(bot, update, get_thing("events", details))
     elif action == "201":
         sign_out(bot, update, "events", details)
     elif action == "202":
@@ -456,10 +459,6 @@ def text_processing(bot, update):
         thing_loc(bot, update, "events", details)
     elif action == "204":
         event_info(bot, update, details)
-    elif action == "200":
-        train_details(bot, update, get_thing("trains", details))
-    elif action == "300":
-        event_details(bot, update, get_thing("events", details))
     elif action == "301":
         db_name = text[2]
         details = int(details)
