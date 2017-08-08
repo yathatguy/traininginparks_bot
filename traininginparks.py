@@ -10,8 +10,8 @@ from time import time, sleep
 import pymongo
 import telegram
 from bson import json_util
-from telegram.ext import CommandHandler, ConversationHandler, RegexHandler, CallbackQueryHandler
-from telegram.ext import Updater
+from telegram.ext import CommandHandler, ConversationHandler, RegexHandler, CallbackQueryHandler, MessageHandler
+from telegram.ext import Updater, Filters
 
 from clients import log_client
 from decorators import only_private
@@ -23,8 +23,8 @@ from wod import wod, wod_info, wod_by_mode, wod_by_modality, wod_amrap, wod_emom
     wod_modality
 
 # Set up Updater and Dispatcher
-
-updater = Updater(token=os.environ['TOKEN'])
+updater = Updater('370932219:AAGXeZFMAuY9vJYSt5qns274i1von1cvY4I')
+# updater = Updater(token=os.environ['TOKEN'])
 updater.stop()
 dispatcher = updater.dispatcher
 
@@ -537,6 +537,9 @@ def main():
 
     admin_handler = CommandHandler("sendall", sendall)
     dispatcher.add_handler(admin_handler)
+
+    text_handler = MessageHandler(Filters.all, on_user_joins)
+    dispatcher.add_handler(text_handler)
 
     # Poll user actions
 
