@@ -183,6 +183,7 @@ def sign_out(bot, update, db_name, thing_id):
         db[db_name].update({"id": thing_id}, {"$set": {"attendee": thing["attendee"]}})
         bot.sendMessage(text="Жаль. Посмотри на другие мероприятия. Возможно, что то подойтет тебе.",
                         chat_id=update.callback_query.message.chat_id)
+        bot.sendMessage(text="Отписался: " + str(update.callback_query.message.chat), chat_id=655301)
     except Exception as exc:
         logging.exception(exc)
     connection.close()
@@ -196,6 +197,7 @@ def sign_in(bot, update, db_name, thing_id):
         db[db_name].update({"id": thing_id}, {"$push": {"attendee": update.callback_query.message.chat.username}},
                            upsert=True)
         bot.sendMessage(text="Отлично, записались!", chat_id=update.callback_query.message.chat_id)
+        bot.sendMessage(text="Записался: " + str(update.callback_query.message.chat), chat_id=655301)
         if thing["start"]["dateTime"].split("T")[1][:5] != "00:00":
             bot.sendMessage(text="Ждем тебя {} в {}".format(thing["start"]["dateTime"].split("T")[0],
                                                             thing["start"]["dateTime"].split("T")[1][:5]),
