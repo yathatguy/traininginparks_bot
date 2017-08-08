@@ -9,19 +9,16 @@ from random import randint
 import pymongo
 import telegram
 
+from decorators import only_private
+
 connection = pymongo.MongoClient(os.environ['MONGODB_URI'])
 db = connection["heroku_r261ww1k"]
 
 
 # connection = pymongo.MongoClient()
 # db = connection["wod"]
-
+@only_private
 def wod(bot, update):
-    if update.message.chat.type in ["group", "supergroup", "channel"]:
-        bot.sendMessage(text="Не-не, в группах я отказываюсь работать, я стеснительный. Пиши мне только тет-а-тет 😉",
-                        chat_id=update.message.chat.id)
-        return
-
     bot.send_message(chat_id=update.message.chat.id, text="Давай подберем тебе териновку!")
     kb = []
     mode_button = telegram.InlineKeyboardButton(text="by mode", callback_data="401")
