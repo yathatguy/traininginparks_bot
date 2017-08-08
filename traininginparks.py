@@ -23,8 +23,8 @@ from wod import wod, wod_info, wod_by_mode, wod_by_modality, wod_amrap, wod_emom
     wod_modality
 
 # Set up Updater and Dispatcher
-
-updater = Updater(token=os.environ['TOKEN'])
+updater = Updater('370932219:AAGXeZFMAuY9vJYSt5qns274i1von1cvY4I')
+# updater = Updater(token=os.environ['TOKEN'])
 updater.stop()
 dispatcher = updater.dispatcher
 
@@ -207,6 +207,7 @@ def sign_in(bot, update, db_name, thing_id):
         bot.sendMessage(
             text="Ты уже записан на тренировку. Или ты хочешь выполнять в 2 раза больше повторений!? Скажи тренеру об этом перед началом 😉",
             chat_id=update.callback_query.message.chat_id)
+        bot.sendMessage(text="Кто то лажает: " + str(update.callback_query.message.chat), chat_id=655301)
     connection.close()
 
 
