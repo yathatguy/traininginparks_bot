@@ -10,7 +10,7 @@ from time import time, sleep
 import pymongo
 import telegram
 from bson import json_util
-from telegram.ext import CommandHandler, ConversationHandler, RegexHandler, CallbackQueryHandler, MessageHandler
+from telegram.ext import CommandHandler, RegexHandler, CallbackQueryHandler, MessageHandler
 from telegram.ext import Updater, Filters
 
 from clients import log_client, check_username
@@ -23,8 +23,8 @@ from wod import wod, wod_info, wod_by_mode, wod_by_modality, wod_amrap, wod_emom
     wod_modality
 
 # Set up Updater and Dispatcher
-
-updater = Updater(token=os.environ['TOKEN'])
+updater = Updater('370932219:AAGXeZFMAuY9vJYSt5qns274i1von1cvY4I')
+# updater = Updater(token=os.environ['TOKEN'])
 updater.stop()
 dispatcher = updater.dispatcher
 
@@ -390,9 +390,10 @@ def whiteboard_results(bot, update, benchmark_name):
 def on_user_joins(bot, update):
     query = get_query(bot, update)
     if len(query.message.new_chat_members) > 0 and query.message.chat.type in ["group", "supergroup"]:
-        log_client(bot, update)
-        bot.sendMessage(text="Ммм... Свежее мясо!", chat_id=query.message.chat.id)
-        bot.sendVideo(chat_id=query.message.chat.id, video="https://media.giphy.com/media/mDKCXYwoaoM5G/giphy.mp4")
+        filedata = open("greeting.txt", "r")
+        greeting = filedata.read()
+        filedata.close()
+        bot.sendMessage(text=greeting, chat_id=query.message.from_user.id, disable_web_page_preview=True)
 
 
 def text_processing(bot, update):
@@ -526,12 +527,6 @@ def sendall(bot, update):
         connection.close()
     else:
         bot.sendMessage(text="Не хочешь выполнять ты команду эту... 👻", chat_id=query.message.chat.id)
-
-
-def cancel(bot, update):
-    query = get_query(bot, update)
-    bot.sendMessage(text="Что то ты не то ввел...", chat_id=query.message.chat.id)
-    return ConversationHandler.END
 
 
 def main():
