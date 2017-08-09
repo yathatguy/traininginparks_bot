@@ -10,12 +10,14 @@ import pymongo
 from bson import json_util
 
 
-def get_things(db_name):
+def get_things(db_name, *args, **kwargs):
     """
     Get list of dicts with events from Mongo DB
-    :param num: number of event to request and possible return 
+    :param num: number of event to request and possible return
     :return: list of dicts with events
     """
+
+    user = kwargs.get("user", None)
 
     # Set up connection with Mongo DB
 
@@ -26,7 +28,11 @@ def get_things(db_name):
 
     things_list = list()
     today = datetime.date.today().isoformat()
-    things = db[db_name].find({'start.date': {'$gte': today}}).sort("start.date", pymongo.ASCENDING)
+    if user:
+        things = db[db_name].find({'start.date': {'$gte': today}, 'attendee': {'$in': [user]}}).sort("start.date",
+                                                                                                     pymongo.ASCENDING)
+    else:
+        things = db[db_name].find({'start.date': {'$gte': today}}).sort("start.date", pymongo.ASCENDING)
     for thing in things:
         things_list.append(thing)
     connection.close()

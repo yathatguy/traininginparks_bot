@@ -13,7 +13,7 @@ from bson import json_util
 from telegram.ext import CommandHandler, ConversationHandler, RegexHandler, CallbackQueryHandler, MessageHandler
 from telegram.ext import Updater, Filters
 
-from clients import log_client
+from clients import log_client, check_username
 from decorators import only_private
 from google_calendar import dump_calendar_event, dump_calendar, dump_mongodb
 from keyboard import keyboard
@@ -51,71 +51,76 @@ def get_query(bot, update):
     return query
 
 
-def check_username(bot, update):
-    query = get_query(bot, update)
-    if not query.message.chat.username or query.message.chat.username == "":
-        kb = []
-        button = telegram.InlineKeyboardButton(text="Инструкции", callback_data="000")
-        kb.append([button])
-        kb_markup = telegram.InlineKeyboardMarkup(kb)
-        kb_start = [[telegram.KeyboardButton('/start')]]
-        kb_markup_start = telegram.ReplyKeyboardMarkup(kb_start, resize_keyboard=False)
-        bot.sendMessage(
-            text="Привет!\n\nК сожалению Вы не установили username для своего telegram-аккаунта, и поэтому бот не сможет корректно для Вас работать.",
-            chat_id=query.message.chat.id,
-            reply_markup=kb_markup_start)
-        bot.sendMessage(text="Хочешь посмотреть на инструкции, как это быстро и легко сделать?",
-                        chat_id=query.message.chat.id, reply_markup=kb_markup)
-        return False
-    else:
-        return True
-
-
 @only_private
-def get_trains(bot, update):
+def get_trains(bot, update, *args, **kwargs):
+    user = kwargs.get("user", None)
     query = get_query(bot, update)
     db_name = "trains"
-    trains_list = get_things(db_name)
+    if user:
+        trains_list = get_things(db_name, user=user)
+    else:
+        trains_list = get_things(db_name)
     if trains_list:
         iter = 0
         next = iter + step
-        if len(trains_list) <= next:
-            thing_list(bot, update, db_name, iter, next, skip_pager=True)
-        elif len(trains_list) > next:
-            thing_list(bot, update, db_name, iter, next)
+        if user:
+            if len(trains_list) <= next:
+                thing_list(bot, update, db_name, iter, next, skip_pager=True, user=user)
+            elif len(trains_list) > next:
+                thing_list(bot, update, db_name, iter, next, user=user)
+        else:
+            if len(trains_list) <= next:
+                thing_list(bot, update, db_name, iter, next, skip_pager=True)
+            elif len(trains_list) > next:
+                thing_list(bot, update, db_name, iter, next)
     else:
         bot.sendMessage(text="Пока тренировки не запланированы. Восстанавливаемся!", chat_id=query.message.chat.id,
                         reply_markup=keyboard())
 
 
 @only_private
-def get_events(bot, update):
+def get_events(bot, update, *args, **kwargs):
+    user = kwargs.get("user", None)
     query = get_query(bot, update)
     db_name = "events"
-    events_list = get_things(db_name)
+    if user:
+        events_list = get_things(db_name, user=user)
+    else:
+        events_list = get_things(db_name)
     if events_list:
         iter = 0
         next = iter + step
-        if len(events_list) <= next:
-            thing_list(bot, update, db_name, iter, next, skip_pager=True)
+        if user:
+            if len(events_list) <= next:
+                thing_list(bot, update, db_name, iter, next, skip_pager=True, user=user)
+            else:
+                thing_list(bot, update, db_name, iter, next, user=user)
         else:
-            thing_list(bot, update, db_name, iter, next)
+            if len(events_list) <= next:
+                thing_list(bot, update, db_name, iter, next, skip_pager=True)
+            else:
+                thing_list(bot, update, db_name, iter, next)
     else:
         bot.sendMessage(text="Пока мероприятия не запланированы. Восстанавливаемся!", chat_id=query.message.chat.id,
                         reply_markup=keyboard())
 
 
 def thing_list(bot, update, db_name, iter, next, *args, **kwargs):
+
     query = get_query(bot, update)
     chat_id = query.message.chat.id
-    logging.critical(chat_id)
-    things = get_things(db_name)
+    user = kwargs.get("user", None)
+    if user:
+        things = get_things(db_name, user=user)
+    else:
+        things = get_things(db_name)
     thing_list = things[iter:next]
     kb = []
     for thing in thing_list:
         if db_name == "trains":
-            button = telegram.InlineKeyboardButton(text=thing["start"]["date"] + ":\t" + thing["summary"],
-                                                   callback_data="100;" + thing["id"])
+            button = telegram.InlineKeyboardButton(
+                text=thing["start"]["date"] + " " + thing["start"]["dateTime"].split("T")[1][:5] + ": " + thing[
+                    "summary"], callback_data="100;" + thing["id"])
         elif db_name == "events":
             button = telegram.InlineKeyboardButton(text=thing["start"]["date"] + ":\t" + thing["summary"],
                                                    callback_data="200;" + thing["id"])
@@ -132,15 +137,21 @@ def thing_list(bot, update, db_name, iter, next, *args, **kwargs):
     elif db_name == "events":
         bot.sendMessage(text="Расписание следующих мероприятий:", chat_id=chat_id, reply_markup=kb_markup)
     else:
-        logging.critical("thing_list: db error: " + db_name)
-
+        logging.critical(u"thing_list: db error: " + db_name)
     return thing_list
 
 
-def pager(bot, update, db_name, iter, step, next):
+def pager(bot, update, db_name, iter, step, next, *args, **kwargs):
+    user = kwargs.get("user", None)
     if iter - step == 0:
         button_next = telegram.InlineKeyboardButton(text=">", callback_data="302;" + str(next) + ";" + db_name)
         buttons = []
+        buttons.append(button_next)
+    elif user and len(get_things(db_name, user=user)) > next:
+        button_prev = telegram.InlineKeyboardButton(text="<", callback_data="301;" + str(next - step) + ";" + db_name)
+        button_next = telegram.InlineKeyboardButton(text=">", callback_data="302;" + str(next) + ";" + db_name)
+        buttons = []
+        buttons.append(button_prev)
         buttons.append(button_next)
     elif len(get_things(db_name)) > next:
         button_prev = telegram.InlineKeyboardButton(text="<", callback_data="301;" + str(next - step) + ";" + db_name)
@@ -331,40 +342,8 @@ def attendee(bot, update):
     query = get_query(bot, update)
     if check_username(bot, update) == False:
         return
-    bot.sendMessage(text="Твои тренировки:", chat_id=query.message.chat.id)
-    trains = get_things("trains")
-    if trains:
-        count = 0
-        for train in trains:
-            if "attendee" in train.keys() and query.message.chat.username in train["attendee"]:
-                bot.sendMessage(text=train["start"]["date"] + ":\t" + train["summary"],
-                                chat_id=query.message.chat.id,
-                                reply_markup=keyboard())
-                count = + 1
-            else:
-                pass
-        if count == 0:
-            bot.sendMessage(text="Ты не записан(а) ни на одну из тренировок.", chat_id=query.message.chat.id)
-    else:
-        bot.sendMessage(text="Пока тренировки не запланированы. Восстанавливаемся!", chat_id=query.message.chat.id,
-                        reply_markup=keyboard())
-    bot.sendMessage(text="Твои мероприятия:", chat_id=query.message.chat.id)
-    events = get_things("events")
-    if events:
-        count = 0
-        for event in events:
-            if "attendee" in event.keys() and query.message.chat.username in event["attendee"]:
-                bot.sendMessage(text=event["start"]["date"] + ":\t" + event["summary"],
-                                chat_id=query.message.chat.id,
-                                reply_markup=keyboard())
-                count = + 1
-            else:
-                pass
-        if count == 0:
-            bot.sendMessage(text="Ты не записан(а) ни на одно из мероприятий.", chat_id=query.message.chat.id)
-    else:
-        bot.sendMessage(text="Пока тренировки не запланированы. Восстанавливаемся!", chat_id=query.message.chat.id,
-                        reply_markup=keyboard())
+    get_trains(bot, update, user=query.message.chat.username)
+    get_events(bot, update, user=query.message.chat.username)
 
 
 @only_private
@@ -480,8 +459,6 @@ def text_processing(bot, update):
     elif action == "301":
         db_name = text[2]
         details = int(details)
-        logging.critical(db_name)
-        logging.critical(details)
         thing_list(bot, update, db_name, details - step, details)
     elif action == "302":
         db_name = text[2]
