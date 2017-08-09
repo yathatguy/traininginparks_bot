@@ -378,8 +378,12 @@ def whiteboard_results(bot, update, benchmark_name):
                         chat_id=query.message.chat.id)
     else:
         for man in sorted(benchmark["results"], key=lambda k: k["result"]):
-            bot.sendMessage(text="@" + man["name"] + ":\t" + man["result"],
-                            chat_id=query.message.chat.id)
+            text = "@" + man["name"] + ":\t" + man["result"]
+            if "mode" in man.keys():
+                text = text + "\t(" + man["mode"] + ")"
+            if "video" in man.keys():
+                text = text + "\t" + man["video"]
+            bot.sendMessage(text=text, chat_id=query.message.chat.id, disable_web_page_preview=True)
     connection.close()
 
 
