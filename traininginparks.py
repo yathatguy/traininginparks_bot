@@ -23,6 +23,7 @@ from wod import wod, wod_info, wod_by_mode, wod_by_modality, wod_amrap, wod_emom
     wod_modality
 
 # Set up Updater and Dispatcher
+
 updater = Updater(token=os.environ['TOKEN'])
 updater.stop()
 dispatcher = updater.dispatcher
@@ -376,7 +377,7 @@ def whiteboard_results(bot, update, benchmark_name):
         bot.sendMessage(text="Еще никто не записал свой результат. Ты можешь быть первым!",
                         chat_id=query.message.chat.id)
     else:
-        for man in sorted(benchmark["results"], key=lambda k: k["result"]):
+        for man in sorted(sorted(benchmark["results"], key=lambda k: k["result"]), key=lambda m: m["mode"]):
             text = "@" + man["name"] + ":\t" + man["result"]
             if "mode" in man.keys():
                 text = text + "\t(" + man["mode"] + ")"
