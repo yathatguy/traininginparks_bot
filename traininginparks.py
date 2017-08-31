@@ -533,6 +533,7 @@ def sendall(bot, update):
 
 
 def main():
+    logging.basicConfig(filename='info.log', level=logging.INFO)
 
     # Set up handlers
 
