@@ -524,8 +524,14 @@ def sendall(bot, update):
         db = connection["heroku_r261ww1k"]
         client_list = json.loads(json_util.dumps(db["clients"].find({})))
         for client in client_list:
+            logging.info(client.username)
             text = query.message.text[9:]
-            bot.sendMessage(text=text, chat_id=client["chat_id"])
+            try:
+                bot.sendMessage(text=text, chat_id=client["chat_id"])
+                logging.info("\tMessage sent")
+            except Exception as exc:
+                logging.critical("\tMessage WAS NOT sent")
+                logging.critical(exc)
             sleep(1)
         connection.close()
     else:
@@ -533,7 +539,7 @@ def sendall(bot, update):
 
 
 def main():
-    logging.basicConfig(filename='info.log', level=logging.INFO)
+    logging.basicConfig(level=logging.INFO)
 
     # Set up handlers
 
