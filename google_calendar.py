@@ -5,8 +5,11 @@ from __future__ import unicode_literals, print_function
 import datetime
 import json
 import os
+import random
+import time
 
 import pymongo
+from apiclient import errors
 from googleapiclient.discovery import build
 from httplib2 import Http
 from oauth2client.service_account import ServiceAccountCredentials
@@ -53,8 +56,17 @@ def dump_calendar(calendar, num):
     google_events = []
     if events:
         for event in events:
-            google_event = service.events().get(calendarId=calendar, eventId=event["id"]).execute()
-            google_events.append(google_event)
+            for n in range(0, 5):
+                try:
+                    google_event = service.events().get(calendarId=calendar, eventId=event["id"]).execute()
+                    google_events.append(google_event)
+                except errors.HttpError, error:
+                    if error.resp.reason in ['userRateLimitExceeded', 'quotaExceeded', 'internalServerError',
+                                             'backendError']:
+                        time.sleep((2 ** n) + random.random())
+                    else:
+                        break
+                    print("There has been an error, the request never succeeded.")
 
     return google_events
 
