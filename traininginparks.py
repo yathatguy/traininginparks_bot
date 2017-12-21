@@ -228,6 +228,10 @@ def sign_in(bot, update, db_name, thing_id):
     if check_username(bot, update) == False:
         return
     query = get_query(bot, update)
+    try:
+        thing = get_thing(db_name, thing_id)
+    except Exception as exp:
+        logging.critical(exp)
     thing = get_thing(db_name, thing_id)
     connection = pymongo.MongoClient(os.environ['MONGODB_URI'])
     db = connection["heroku_r261ww1k"]

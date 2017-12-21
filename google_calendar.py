@@ -157,7 +157,6 @@ if __name__ == '__main__':
     main()
 
 
-# https://www.googleapis.com/calendar/v3/calendars/kaf5qkq0jeas32k56fop5k0ci0%40group.calendar.google.com/events?maxResults=5&orderBy=startTime&singleEvents=true&key={YOUR_API_KEY}
 # DOC: https://developers.google.com/api-client-library/python/auth/service-accounts
 # DOC: https://developers.google.com/resources/api-libraries/documentation/calendar/v3/python/latest/index.html
 # DOC: http://pythonhosted.org/python-telegram-bot/
