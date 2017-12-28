@@ -171,12 +171,15 @@ def train_details(bot, update, train):
         return
     query = get_query(bot, update)
     kb = []
-    if "attendee" in train.keys() and query.message.chat.username in train["attendee"]:
-        text_sign = "❌ Не смогу прийти"
-        signup = telegram.InlineKeyboardButton(text=text_sign, callback_data="101;" + str(train["id"]))
-    else:
-        text_sign = "✅ Записаться"
-        signup = telegram.InlineKeyboardButton(text=text_sign, callback_data="102;" + str(train["id"]))
+    try:
+        if "attendee" in train.keys() and query.message.chat.username in train["attendee"]:
+            text_sign = "❌ Не смогу прийти"
+            signup = telegram.InlineKeyboardButton(text=text_sign, callback_data="101;" + str(train["id"]))
+        else:
+            text_sign = "✅ Записаться"
+            signup = telegram.InlineKeyboardButton(text=text_sign, callback_data="102;" + str(train["id"]))
+    except Exception as exc:
+        logging.exception(exc)
     text_loc = "🗺 Где это?"
     location = telegram.InlineKeyboardButton(text=text_loc, callback_data="103;" + str(train["id"]))
     kb.append([signup, location])
@@ -190,12 +193,15 @@ def event_details(bot, update, event):
         return
     query = get_query(bot, update)
     kb = []
-    if "attendee" in event.keys() and query.message.chat.username in event["attendee"]:
-        text_sign = "❌ Не смогу прийти"
-        signup = telegram.InlineKeyboardButton(text=text_sign, callback_data="201;" + str(event["id"]))
-    else:
-        text_sign = "✅ Записаться"
-        signup = telegram.InlineKeyboardButton(text=text_sign, callback_data="202;" + str(event["id"]))
+    try:
+        if "attendee" in event.keys() and query.message.chat.username in event["attendee"]:
+            text_sign = "❌ Не смогу прийти"
+            signup = telegram.InlineKeyboardButton(text=text_sign, callback_data="201;" + str(event["id"]))
+        else:
+            text_sign = "✅ Записаться"
+            signup = telegram.InlineKeyboardButton(text=text_sign, callback_data="202;" + str(event["id"]))
+    except Exception as exc:
+        logging.exception(exc)
     text_loc = "🗺 Где это?"
     location = telegram.InlineKeyboardButton(text=text_loc, callback_data="203;" + str(event["id"]))
     kb.append([signup, location])
@@ -235,21 +241,24 @@ def sign_in(bot, update, db_name, thing_id):
     thing = get_thing(db_name, thing_id)
     connection = pymongo.MongoClient(os.environ['MONGODB_URI'])
     db = connection["heroku_r261ww1k"]
-    if "attendee" not in thing.keys() or query.message.chat.username not in thing["attendee"]:
-        db[db_name].update({"id": thing_id}, {"$push": {"attendee": query.message.chat.username}},
-                           upsert=True)
-        bot.sendMessage(text="Отлично, записались!", chat_id=query.message.chat_id)
-        if thing["start"]["dateTime"].split("T")[1][:5] != "00:00":
-            bot.sendMessage(text="Ждем тебя {} в {}".format(thing["start"]["dateTime"].split("T")[0],
-                                                            thing["start"]["dateTime"].split("T")[1][:5]),
-                            chat_id=query.message.chat_id)
+    try:
+        if "attendee" not in thing.keys() or query.message.chat.username not in thing["attendee"]:
+            db[db_name].update({"id": thing_id}, {"$push": {"attendee": query.message.chat.username}},
+                               upsert=True)
+            bot.sendMessage(text="Отлично, записались!", chat_id=query.message.chat_id)
+            if thing["start"]["dateTime"].split("T")[1][:5] != "00:00":
+                bot.sendMessage(text="Ждем тебя {} в {}".format(thing["start"]["dateTime"].split("T")[0],
+                                                                thing["start"]["dateTime"].split("T")[1][:5]),
+                                chat_id=query.message.chat_id)
+            else:
+                bot.sendMessage(text="Ждем тебя {}".format(thing["start"]["dateTime"].split("T")[0]),
+                                chat_id=query.message.chat_id)
         else:
-            bot.sendMessage(text="Ждем тебя {}".format(thing["start"]["dateTime"].split("T")[0]),
-                            chat_id=query.message.chat_id)
-    else:
-        bot.sendMessage(
-            text="Ты уже записан на тренировку. Или ты хочешь выполнять в 2 раза больше повторений!? Скажи тренеру об этом перед началом 😉",
-            chat_id=query.message.chat_id)
+            bot.sendMessage(
+                text="Ты уже записан на тренировку. Или ты хочешь выполнять в 2 раза больше повторений!? Скажи тренеру об этом перед началом 😉",
+                chat_id=query.message.chat_id)
+    except Exception as exc:
+        logging.exception(exc)
     connection.close()
 
 
