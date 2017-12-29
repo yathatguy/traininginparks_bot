@@ -133,12 +133,15 @@ def thing_list(bot, update, db_name, iter, next, *args, **kwargs):
         kb.append(pager(bot, update, db_name, iter, step, next))
     kb_markup = telegram.InlineKeyboardMarkup(kb)
 
-    if db_name == "trains":
-        text = "Расписание следующих тренировок:"
-    elif db_name == "events":
-        text = "Расписание следующих мероприятий:"
-    else:
+    text_options = {
+        "trains": "Расписание следующих тренировок:",
+        "events": "Расписание следующих мероприятий:",
+    }
+
+    text = text_options.get(db_name)
+    if not text:
         logging.critical(u"thing_list: db error: " + db_name)
+        return things_list
 
     method_kwargs = {'text': text, 'reply_markup': kb_markup}
 
