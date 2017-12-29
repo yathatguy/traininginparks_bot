@@ -142,7 +142,8 @@ def thing_list(bot, update, db_name, iter, next, *args, **kwargs):
 
     method_kwargs = {'text': text, 'reply_markup': kb_markup}
 
-    if query.inline_message_id:
+    # `query` может быть и CallbackQuery, и Update без такого атрибута.
+    if hasattr(query, 'inline_message_id'):
         method_kwargs['inline_message_id'] = query.inline_message_id
         method = bot.edit_message_reply_markup
     else:
