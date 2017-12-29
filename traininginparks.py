@@ -132,12 +132,26 @@ def thing_list(bot, update, db_name, iter, next, *args, **kwargs):
     if not skip_pager:
         kb.append(pager(bot, update, db_name, iter, step, next))
     kb_markup = telegram.InlineKeyboardMarkup(kb)
-    if db_name == "trains":
-        bot.sendMessage(text="Расписание следующих тренировок:", chat_id=chat_id, reply_markup=kb_markup)
-    elif db_name == "events":
-        bot.sendMessage(text="Расписание следующих мероприятий:", chat_id=chat_id, reply_markup=kb_markup)
-    else:
+
+    text_options = {
+        "trains": "Расписание следующих тренировок:",
+        "events": "Расписание следующих мероприятий:",
+    }
+
+    text = text_options.get(db_name)
+    if not text:
         logging.critical(u"thing_list: db error: " + db_name)
+        return things_list
+
+    # `query` может быть и CallbackQuery, и Update без такого атрибута.
+    if hasattr(query, 'inline_message_id'):
+        bot.edit_message_reply_markup(
+            inline_message_id=query.inline_message_id,
+            reply_markup=kb_markup,
+        )
+    else:
+        bot.sendMessage(chat_id=chat_id, text=text, reply_markup=kb_markup)
+
     return thing_list
 
 
