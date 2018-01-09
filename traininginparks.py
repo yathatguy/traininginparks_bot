@@ -5,13 +5,13 @@ from __future__ import unicode_literals, print_function
 import json
 import logging
 import os
-from time import time, sleep
 
 import pymongo
 import telegram
 from bson import json_util
 from telegram.ext import CommandHandler, RegexHandler, CallbackQueryHandler, MessageHandler
 from telegram.ext import Updater, Filters
+from time import time, sleep
 
 from clients import log_client, check_username
 from decorators import only_private
@@ -180,9 +180,12 @@ def train_details(bot, update, train):
             signup = telegram.InlineKeyboardButton(text=text_sign, callback_data="102;" + str(train["id"]))
     except Exception as exc:
         logging.exception(exc)
+    text_attendees = "🙏 Участники"
+    attendees = telegram.InlineKeyboardButton(text=text_attendees, callback_data="105;{};".format(str(train["id"])))
+    kb.append([signup, attendees])
     text_loc = "🗺 Где это?"
     location = telegram.InlineKeyboardButton(text=text_loc, callback_data="103;" + str(train["id"]))
-    kb.append([signup, location])
+    kb.append([location])
     kb_markup = telegram.InlineKeyboardMarkup(kb)
     bot.sendMessage(text="Детали по событию: {} - {}".format(train["start"]["date"], train["summary"]),
                     chat_id=query.message.chat.id, reply_markup=kb_markup)
@@ -202,12 +205,14 @@ def event_details(bot, update, event):
             signup = telegram.InlineKeyboardButton(text=text_sign, callback_data="202;" + str(event["id"]))
     except Exception as exc:
         logging.exception(exc)
+    text_attendees = "🙏 Участники"
+    attendees = telegram.InlineKeyboardButton(text=text_attendees, callback_data="205;{};".format(str(event["id"])))
+    kb.append([signup, attendees])
     text_loc = "🗺 Где это?"
     location = telegram.InlineKeyboardButton(text=text_loc, callback_data="203;" + str(event["id"]))
-    kb.append([signup, location])
     text_info = "📋 Информация"
     info = telegram.InlineKeyboardButton(text=text_info, callback_data="204;" + str(event["id"]))
-    kb.append([info])
+    kb.append([info, location])
     kb_markup = telegram.InlineKeyboardMarkup(kb)
     bot.sendMessage(text="Детали по событию: {} - {}".format(event["start"]["date"], event["summary"]),
                     chat_id=query.message.chat.id, reply_markup=kb_markup)
@@ -238,7 +243,6 @@ def sign_in(bot, update, db_name, thing_id):
         thing = get_thing(db_name, thing_id)
     except Exception as exp:
         logging.critical(exp)
-    thing = get_thing(db_name, thing_id)
     connection = pymongo.MongoClient(os.environ['MONGODB_URI'])
     db = connection["heroku_r261ww1k"]
     try:
@@ -281,19 +285,8 @@ def get_train_attendees(bot, update):
         bot.sendMessage(chat_id=query.message.chat.id,
                         text="Список людей, записавшихся на предстоящие тренировки:")
         for train in trains_list:
-            if "attendee" in train.keys() and len(train["attendee"]) > 0:
-                attendees_list = ''
-                for attendee in train["attendee"]:
-                    attendees_list = attendees_list + ' @' + attendee
-                bot.sendMessage(chat_id=query.message.chat.id,
-                                text="{}: {} ({}) - {}".format(train["start"]["dateTime"].split("T")[0],
-                                                               train["summary"],
-                                                               len(train["attendee"]), attendees_list))
-            else:
-                bot.sendMessage(chat_id=query.message.chat.id,
-                                text="{}: {} ({}) - {}".format(train["start"]["dateTime"].split("T")[0],
-                                                               train["summary"],
-                                                               0, 'пока никто не записался'))
+            attendees_list = list_event_attendees(db_name="trains", event=train["id"])
+            print_event_attendees(bot, update, train["start"]["dateTime"], train["summary"], attendees_list)
     else:
         bot.sendMessage(chat_id=query.message.chat.id, text="Нет трениировок, нет и записавшихся.")
 
@@ -305,21 +298,35 @@ def get_event_attendees(bot, update):
         bot.sendMessage(chat_id=query.message.chat.id,
                         text="Список людей, записавшихся на предстоящие мероприятия:")
         for event in events_list:
-            if "attendee" in event.keys() and len(event["attendee"]) > 0:
-                attendees_list = ''
-                for attendee in event["attendee"]:
-                    attendees_list = attendees_list + ' @' + attendee
-                bot.sendMessage(chat_id=query.message.chat.id,
-                                text="{}: {} ({}) - {}".format(event["start"]["dateTime"].split("T")[0],
-                                                               event["summary"],
-                                                               len(event["attendee"]), attendees_list))
-            else:
-                bot.sendMessage(chat_id=query.message.chat.id,
-                                text="{}: {} ({}) - {}".format(event["start"]["dateTime"].split("T")[0],
-                                                               event["summary"],
-                                                               0, 'пока никто не записался'))
+            attendees_list = list_event_attendees(db_name="events", event=event["id"])
+            print_event_attendees(bot, update, event["start"]["dateTime"], event["summary"], attendees_list)
     else:
         bot.sendMessage(chat_id=query.message.chat.id, text="Нет мероприятий, нет и записавшихся.")
+
+
+def list_event_attendees(db_name, event):
+    one_event = get_thing(db_name, event)
+    if "attendee" in one_event.keys() and len(one_event["attendee"]) > 0:
+        attendees_list = ''
+        for attendee in one_event["attendee"]:
+            attendees_list = attendees_list + ' @' + attendee
+        return attendees_list
+    else:
+        return None
+
+
+def print_event_attendees(bot, update, event_start, event_summary, attendees_list):
+    query = get_query(bot, update)
+    if attendees_list:
+        bot.sendMessage(chat_id=query.message.chat.id,
+                        text="{}: {} ({}) - {}".format(event_start.split("T")[0],
+                                                       event_summary,
+                                                       len(attendees_list.split()), attendees_list))
+    else:
+        bot.sendMessage(chat_id=query.message.chat.id,
+                        text="{}: {} ({}) - {}".format(event_start.split("T")[0],
+                                                       event_summary,
+                                                       0, 'пока никто не записался'))
 
 
 def thing_loc(bot, update, db_name, thing_id):
@@ -419,11 +426,13 @@ def text_processing(bot, update):
     # 100 - trains
     # 101 - train sign out
     # 102 - train sign in
+    # 105 - train attendees
     # 200 - events
     # 201 - event sign out
     # 202 - event sign in
     # 203 - event location
     # 204 - event info
+    # 205 - event attendees
     # 301 - pager: next
     # 302 - pager: prev
     # 401 - wod by mode
@@ -467,6 +476,10 @@ def text_processing(bot, update):
         sign_in(bot, update, "trains", details)
     elif action == "103":
         thing_loc(bot, update, "trains", details)
+    elif action == "105":
+        print_event_attendees(bot, update, get_thing("trains", details)["start"]["dateTime"],
+                              get_thing("trains", details)["summary"],
+                              attendees_list=list_event_attendees("trains", details))
     elif action == "200":
         event_details(bot, update, get_thing("events", details))
     elif action == "201":
@@ -477,6 +490,10 @@ def text_processing(bot, update):
         thing_loc(bot, update, "events", details)
     elif action == "204":
         event_info(bot, update, details)
+    elif action == "205":
+        print_event_attendees(bot, update, get_thing("events", details)["start"]["dateTime"],
+                              get_thing("events", details)["summary"],
+                              attendees_list=list_event_attendees("events", details))
     elif action == "301":
         db_name = text[2]
         details = int(details)
