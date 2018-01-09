@@ -562,7 +562,8 @@ def sendall(bot, update):
                 bot.sendMessage(text=text, chat_id=client["chat_id"])
                 logging.info("\tMessage sent")
             except Exception as exc:
-                logging.critical("\tMessage WAS NOT sent")
+                logging.critical(client["username"])
+                logging.critical("\t@{}: message WAS NOT sent".format(client["username"]))
                 logging.critical(exc)
             sleep(1)
         connection.close()
