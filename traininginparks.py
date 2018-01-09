@@ -106,7 +106,6 @@ def get_events(bot, update, *args, **kwargs):
 
 
 def thing_list(bot, update, db_name, iter, next, *args, **kwargs):
-
     query = get_query(bot, update)
     chat_id = query.message.chat.id
     user = kwargs.get("user", None)
@@ -417,6 +416,9 @@ def on_user_joins(bot, update):
         bot.sendMessage(text=greeting, chat_id=query.message.from_user.id, disable_web_page_preview=True)
         bot.sendMessage(text="Ммм... Свежее мясо!", chat_id=query.message.chat.id)
         bot.sendVideo(chat_id=query.message.chat.id, video="https://media.giphy.com/media/mDKCXYwoaoM5G/giphy.mp4")
+        bot.sendMessage(
+            text="@{}, рады приветстовать тебя! В нашем чате действуют правила: https://clck.ru/CVP7z".format(
+                query.message.chat.username), chat_id=query.message.chat.id)
 
 
 def text_processing(bot, update):
