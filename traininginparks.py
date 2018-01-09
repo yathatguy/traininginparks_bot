@@ -551,7 +551,7 @@ def sendall(bot, update):
     if check_username(bot, update) == False:
         return
     query = get_query(bot, update)
-    if query.message.chat.username in ["ya_thatguy"]:
+    if query.message.chat.username in ["ya_thatguy", "Ilyazdorenko", "Simple_kap"]:
         connection = pymongo.MongoClient(os.environ['MONGODB_URI'])
         db = connection["heroku_r261ww1k"]
         client_list = json.loads(json_util.dumps(db["clients"].find({})))
