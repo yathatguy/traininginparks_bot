@@ -409,6 +409,7 @@ def whiteboard_results(bot, update, benchmark_name):
 def on_user_joins(bot, update):
     query = get_query(bot, update)
     if len(query.message.new_chat_members) > 0 and query.message.chat.type in ["group", "supergroup"]:
+        user = query.message.chat.username
         log_client(bot, update)
         filedata = open("greeting.txt", "r")
         greeting = filedata.read()
@@ -418,7 +419,7 @@ def on_user_joins(bot, update):
         bot.sendVideo(chat_id=query.message.chat.id, video="https://media.giphy.com/media/mDKCXYwoaoM5G/giphy.mp4")
         bot.sendMessage(
             text="@{}, рады приветстовать тебя! В нашем чате действуют правила: https://clck.ru/CVP7z".format(
-                query.message.chat.username), chat_id=query.message.chat.id)
+                user), chat_id=query.message.chat.id)
 
 
 def text_processing(bot, update):
