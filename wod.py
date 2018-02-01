@@ -19,7 +19,7 @@ db = connection["heroku_r261ww1k"]
 # db = connection["wod"]
 @only_private
 def wod(bot, update):
-    bot.send_message(chat_id=update.message.chat.id, text="Давай подберем тебе териновку!")
+    bot.send_message(chat_id=update.message.chat.id, text="Давай подберем тебе тренировку!")
     kb = []
     mode_button = telegram.InlineKeyboardButton(text="by mode", callback_data="401")
     modality_button = telegram.InlineKeyboardButton(text="by modailty", callback_data="402")
