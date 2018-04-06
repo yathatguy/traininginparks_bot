@@ -131,7 +131,7 @@ def dump_mongodb(name, events):
         # Get event type
 
         event["type"] = parse_activities(event["summary"])
-        
+
         # Update MongoDB
 
         db[name].update({"id": event["id"]}, {"$set": {"id": event["id"],
@@ -147,6 +147,7 @@ def dump_mongodb(name, events):
                                                        "summary": event["summary"],
                                                        "start": event["start"],
                                                        "etag": event["etag"],
+                                                       "type": event["type"],
                                                        "organizer": event["organizer"],
                                                        "creator": event["creator"]
                                                        }}, upsert=True)
