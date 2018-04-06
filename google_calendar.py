@@ -85,6 +85,25 @@ def dump_calendar_event(calendar, event):
     return cal_event
 
 
+def parse_activities(text):
+    if text == "":
+        return None
+    if text[0] == "[":
+        char = text[0]
+        activities_raw = str()
+        for char in text:
+            if char != "]":
+                activities_raw += char
+            else:
+                activities_raw += char
+                activities_list = activities_raw.lower().split(",")
+                activities = list()
+                for activity in activities_list:
+                    activities.append(activity.strip(" "))
+                return activities
+    else:
+        return None
+
 def dump_mongodb(name, events):
     """
     Get list of dicts with events and update Mongo DB with actual information
@@ -109,6 +128,10 @@ def dump_mongodb(name, events):
         else:
             event["start"]["date"] = event["start"]["dateTime"].split("T")[0]
 
+        # Get event type
+
+        event["type"] = parse_activities(event["summary"])
+        
         # Update MongoDB
 
         db[name].update({"id": event["id"]}, {"$set": {"id": event["id"],
