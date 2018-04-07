@@ -96,7 +96,7 @@ def parse_activities(text):
                 activities_raw += char
             else:
                 activities_raw += char
-                activities_list = activities_raw.lower().split(",")
+                activities_list = activities_raw.split(",")
                 activities = list()
                 for activity in activities_list:
                     activities.append(activity.strip(" "))

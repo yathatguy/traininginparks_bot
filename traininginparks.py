@@ -21,10 +21,12 @@ from maps_api import get_coordinates
 from mongodata import get_things, get_thing
 from wod import wod, wod_info, wod_by_mode, wod_by_modality, wod_amrap, wod_emom, wod_rt, wod_strength, wod_time, \
     wod_modality
+import activities
 
 # Set up Updater and Dispatcher
 
-updater = Updater(token=os.environ['TOKEN'])
+#updater = Updater(token=os.environ['TOKEN'])
+updater = Updater(token="370932219:AAGXeZFMAuY9vJYSt5qns274i1von1cvY4I")
 updater.stop()
 dispatcher = updater.dispatcher
 
@@ -132,8 +134,12 @@ def thing_list(bot, update, db_name, iter, next, *args, **kwargs):
         kb.append(pager(bot, update, db_name, iter, step, next))
     kb_markup = telegram.InlineKeyboardMarkup(kb)
     if db_name == "trains":
+        kb_markup = activities.keyboard(db_name)
+        logging.critical(kb_markup)
         bot.sendMessage(text="Расписание следующих тренировок:", chat_id=chat_id, reply_markup=kb_markup)
     elif db_name == "events":
+        kb_markup = activities.keyboard(db_name)
+        logging.critical(kb_markup)
         bot.sendMessage(text="Расписание следующих мероприятий:", chat_id=chat_id, reply_markup=kb_markup)
     else:
         logging.critical(u"thing_list: db error: " + db_name)
@@ -625,6 +631,10 @@ def main():
         events_calendar = os.environ['EVENTS_CALENDAR_ID']
         events = dump_calendar(events_calendar, 30)
         dump_mongodb("events", events)
+
+        # Update activities for trains / events
+
+        activities.create_list()
 
         # Sleep to 60 secs
 
