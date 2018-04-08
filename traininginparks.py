@@ -64,10 +64,11 @@ def get_trains_activities(bot, update, *args, **kwargs):
 def get_trains(bot, update, *args, **kwargs):
     user = kwargs.get("user", None)
     activity = kwargs.get("activities", None)
+    logging.critical(kwargs)
     query = get_query(bot, update)
     db_name = "trains"
     if user:
-        trains_list = get_things(db_name, user=user)
+        trains_list = get_things(db_name, user=user, activities=activity)
     else:
         trains_list = get_things(db_name, activities=activity)
     if trains_list:
@@ -578,8 +579,10 @@ def text_processing(bot, update):
     elif action == "601":
         whiteboard_results(bot, update, details)
     elif action == "701":
+        logging.critical(details)
         get_trains(bot, update, activity=details)
     elif action == "702":
+        logging.critical(details)
         get_events(bot, update, activity=details)
     else:
         logging.critical(update)
