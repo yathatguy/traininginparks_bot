@@ -58,7 +58,7 @@ def get_trains_activities(bot, update, *args, **kwargs):
     query = get_query(bot, update)
     db_name = "trains"
     kb_markup = activities.keyboard(db_name)
-    bot.sendMessage(text="Какой вид тренировки тебя интересует?", chat_id=query.message.chat.id, reply_markup=kb_markup)
+    bot.sendMessage(text="Какая категоря тренировок тебя интересует?", chat_id=query.message.chat.id, reply_markup=kb_markup)
 
 
 def get_trains(bot, update, *args, **kwargs):
@@ -94,7 +94,7 @@ def get_events_activities(bot, update, *args, **kwargs):
     query = get_query(bot, update)
     db_name = "events"
     kb_markup = activities.keyboard(db_name)
-    bot.sendMessage(text="Какой вид соревнований тебя интересует?", chat_id=query.message.chat.id, reply_markup=kb_markup)
+    bot.sendMessage(text="Какая категория соревнований тебя интересует?", chat_id=query.message.chat.id, reply_markup=kb_markup)
 
 
 def get_events(bot, update, *args, **kwargs):
@@ -579,10 +579,8 @@ def text_processing(bot, update):
     elif action == "601":
         whiteboard_results(bot, update, details)
     elif action == "701":
-        logging.critical(details)
         get_trains(bot, update, activities=details)
     elif action == "702":
-        logging.critical(details)
         get_events(bot, update, activities=details)
     else:
         logging.critical(update)

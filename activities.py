@@ -35,7 +35,7 @@ def keyboard(db_name):
             if db_name == "trains":
                 button = telegram.InlineKeyboardButton(text=activity, callback_data="701;" + activity)
             elif db_name == "events":
-                button = telegram.InlineKeyboardButton(text=activity, callback_data="701;" + activity)
+                button = telegram.InlineKeyboardButton(text=activity, callback_data="702;" + activity)
             else:
                 logging.critical("Incorrect DB seceltion.")
             kb.append([button])
