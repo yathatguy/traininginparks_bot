@@ -7,6 +7,7 @@ import json
 import os
 import random
 import time
+import logging
 
 import pymongo
 from apiclient import errors
@@ -89,20 +90,18 @@ def parse_activities(text):
     if text == "":
         return None
     if text[0] == "[":
-        char = text[0]
         activities_raw = str()
-        for char in text:
+        for char in text[1:]:
             if char != "]":
                 activities_raw += char
             else:
-                activities_raw += char
                 activities_list = activities_raw.split(",")
                 activities = list()
                 for activity in activities_list:
                     activities.append(activity.strip(" "))
                 return activities
     else:
-        return None
+        return ["Без категории"]
 
 def dump_mongodb(name, events):
     """

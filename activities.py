@@ -13,7 +13,8 @@ import telegram
 def create_list():
     connection = pymongo.MongoClient(os.environ['MONGODB_URI'])
     db = connection["heroku_r261ww1k"]
-    
+    db["activities"].remove()
+
     for name in ["trains", "events"]:
         activity_list = list()
         for event_db in db[name].find({}):
@@ -21,10 +22,7 @@ def create_list():
                 for activity in event_db["type"]:
                     if activity not in activity_list:
                         activity_list.append(activity)
-        # db["activities"].update({"db": name}, {"$set": {"db": name, "activities": activity_list}}, upsert=False)
-        db["activities"].find_one_and_replace({"db": name}, {"db": name, "activities": activity_list})
-        for item in db["activities"].find({}):
-            logging.critical(item)
+        db["activities"].update({"db": name}, {"$set": {"db": name, "activities": activity_list}}, upsert=True)
     connection.close()
 
 
@@ -32,10 +30,15 @@ def keyboard(db_name):
     connection = pymongo.MongoClient(os.environ['MONGODB_URI'])
     db = connection["heroku_r261ww1k"]
     kb = []
-    for activity in db["activities"].find({"db": db_name}):
-        logging.critical(activity)
-        button = telegram.InlineKeyboardButton(text=activity, callback_data='11111')
-        kb.append([button])
+    for item in db["activities"].find({"db": db_name}):
+        for activity in item["activities"]:
+            if db_name == "trains":
+                button = telegram.InlineKeyboardButton(text=activity, callback_data="701;" + activity)
+            elif db_name == "events":
+                button = telegram.InlineKeyboardButton(text=activity, callback_data="701;" + activity)
+            else:
+                logging.critical("Incorrect DB seceltion.")
+            kb.append([button])
     kb_markup = telegram.InlineKeyboardMarkup(kb)
     connection.close()
     return kb_markup

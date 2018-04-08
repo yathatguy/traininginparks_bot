@@ -18,6 +18,7 @@ def get_things(db_name, *args, **kwargs):
     """
 
     user = kwargs.get("user", None)
+    activity = kwargs.get("activities", None)
 
     # Set up connection with Mongo DB
 
@@ -29,10 +30,10 @@ def get_things(db_name, *args, **kwargs):
     things_list = list()
     today = datetime.date.today().isoformat()
     if user:
-        things = db[db_name].find({'start.date': {'$gte': today}, 'attendee': {'$in': [user]}}).sort("start.date",
+        things = db[db_name].find({'start.date': {'$gte': today}, 'type': {'$in': [activity]}, 'attendee': {'$in': [user]}}).sort("start.date",
                                                                                                      pymongo.ASCENDING)
     else:
-        things = db[db_name].find({'start.date': {'$gte': today}}).sort("start.date", pymongo.ASCENDING)
+        things = db[db_name].find({'start.date': {'$gte': today}, 'type': {'$in': [activity]}}).sort("start.date", pymongo.ASCENDING)
     for thing in things:
         things_list.append(thing)
     connection.close()

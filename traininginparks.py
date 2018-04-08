@@ -54,8 +54,16 @@ def get_query(bot, update):
 
 
 @only_private
+def get_trains_activities(bot, update, *args, **kwargs):
+    query = get_query(bot, update)
+    db_name = "trains"
+    kb_markup = activities.keyboard(db_name)
+    bot.sendMessage(text="Какой вид тренировки тебя интересует?", chat_id=query.message.chat.id, reply_markup=kb_markup)
+
+
 def get_trains(bot, update, *args, **kwargs):
     user = kwargs.get("user", None)
+    activity = kwargs.get("activities", None)
     query = get_query(bot, update)
     db_name = "trains"
     if user:
@@ -67,41 +75,49 @@ def get_trains(bot, update, *args, **kwargs):
         next = iter + step
         if user:
             if len(trains_list) <= next:
-                thing_list(bot, update, db_name, iter, next, skip_pager=True, user=user)
+                thing_list(bot, update, db_name, iter, next, skip_pager=True, user=user, activities=activity)
             elif len(trains_list) > next:
-                thing_list(bot, update, db_name, iter, next, user=user)
+                thing_list(bot, update, db_name, iter, next, user=user, activities=activity)
         else:
             if len(trains_list) <= next:
-                thing_list(bot, update, db_name, iter, next, skip_pager=True)
+                thing_list(bot, update, db_name, iter, next, skip_pager=True, activities=activity)
             elif len(trains_list) > next:
-                thing_list(bot, update, db_name, iter, next)
+                thing_list(bot, update, db_name, iter, next, activities=activity)
     else:
         bot.sendMessage(text="Пока тренировки не запланированы. Восстанавливаемся!", chat_id=query.message.chat.id,
                         reply_markup=keyboard())
 
 
 @only_private
+def get_events_activities(bot, update, *args, **kwargs):
+    query = get_query(bot, update)
+    db_name = "events"
+    kb_markup = activities.keyboard(db_name)
+    bot.sendMessage(text="Какой вид соревнований тебя интересует?", chat_id=query.message.chat.id, reply_markup=kb_markup)
+
+
 def get_events(bot, update, *args, **kwargs):
     user = kwargs.get("user", None)
+    activity = kwargs.get("activities", None)
     query = get_query(bot, update)
     db_name = "events"
     if user:
-        events_list = get_things(db_name, user=user)
+        events_list = get_things(db_name, user=user, activities=activity)
     else:
-        events_list = get_things(db_name)
+        events_list = get_things(db_name, activities=activity)
     if events_list:
         iter = 0
         next = iter + step
         if user:
             if len(events_list) <= next:
-                thing_list(bot, update, db_name, iter, next, skip_pager=True, user=user)
+                thing_list(bot, update, db_name, iter, next, skip_pager=True, user=user, activities=activity)
             else:
-                thing_list(bot, update, db_name, iter, next, user=user)
+                thing_list(bot, update, db_name, iter, next, user=user, activities=activity)
         else:
             if len(events_list) <= next:
-                thing_list(bot, update, db_name, iter, next, skip_pager=True)
+                thing_list(bot, update, db_name, iter, next, skip_pager=True, )
             else:
-                thing_list(bot, update, db_name, iter, next)
+                thing_list(bot, update, db_name, iter, next, activities=activity)
     else:
         bot.sendMessage(text="Пока мероприятия не запланированы. Восстанавливаемся!", chat_id=query.message.chat.id,
                         reply_markup=keyboard())
@@ -111,10 +127,12 @@ def thing_list(bot, update, db_name, iter, next, *args, **kwargs):
     query = get_query(bot, update)
     chat_id = query.message.chat.id
     user = kwargs.get("user", None)
+    activity = kwargs.get("activities", None)
     if user:
-        things = get_things(db_name, user=user)
+        things = get_things(db_name, user=user, activities=activity)
     else:
-        things = get_things(db_name)
+        things = get_things(db_name, activities=activity)
+    logging.critical(things)
     thing_list = things[iter:next]
     kb = []
     for thing in thing_list:
@@ -134,12 +152,8 @@ def thing_list(bot, update, db_name, iter, next, *args, **kwargs):
         kb.append(pager(bot, update, db_name, iter, step, next))
     kb_markup = telegram.InlineKeyboardMarkup(kb)
     if db_name == "trains":
-        kb_markup = activities.keyboard(db_name)
-        logging.critical(kb_markup)
         bot.sendMessage(text="Расписание следующих тренировок:", chat_id=chat_id, reply_markup=kb_markup)
     elif db_name == "events":
-        kb_markup = activities.keyboard(db_name)
-        logging.critical(kb_markup)
         bot.sendMessage(text="Расписание следующих мероприятий:", chat_id=chat_id, reply_markup=kb_markup)
     else:
         logging.critical(u"thing_list: db error: " + db_name)
@@ -190,6 +204,17 @@ def train_details(bot, update, train):
     kb.append([signup, attendees])
     text_loc = "🗺 Где это?"
     location = telegram.InlineKeyboardButton(text=text_loc, callback_data="103;" + str(train["id"]))
+    #    text_cal = "🗓 Добавить"
+    #    cal = telegram.InlineKeyboardButton(text=text_cal, url=train["htmlLink"] +
+    #        "&action=TEMPLATE" +
+    #        "&text=" + train["summary"] +
+    #        "&dates=" + train["start"]["dateTime"] + "/" + train["end"]["dateTime"] + # Проблема с конвертацией даты
+    #        "&trp=false" +
+    #        "&sprop=" +
+    #        "&sprop=name:" +
+    #        "&pprop=HowCreated:QUICKADD&scp=ONE")
+    #    logging.critical(cal)
+    #    kb.append([location, cal])
     kb.append([location])
     kb_markup = telegram.InlineKeyboardMarkup(kb)
     bot.sendMessage(text="Детали по событию: {} - {}".format(train["start"]["date"], train["summary"]),
@@ -455,6 +480,8 @@ def text_processing(bot, update):
     # 501 - attendees for trains
     # 502 - attendees for events
     # 601 - whiteboard results
+    # 701 - trains activity choose
+    # 702 - trains activity choose
 
     text = query.data.split(";")
     action = text[0]
@@ -550,6 +577,10 @@ def text_processing(bot, update):
         get_event_attendees(bot, update)
     elif action == "601":
         whiteboard_results(bot, update, details)
+    elif action == "701":
+        get_trains(bot, update, activity=details)
+    elif action == "702":
+        get_events(bot, update, activity=details)
     else:
         logging.critical(update)
 
@@ -586,7 +617,7 @@ def main():
     start_handler = CommandHandler("start", start)
     dispatcher.add_handler(start_handler)
 
-    train_handler = RegexHandler("^(🏃 Треня)$", get_trains)
+    train_handler = RegexHandler("^(🏃 Треня)$", get_trains_activities)
     dispatcher.add_handler(train_handler)
 
     attendees_handler = RegexHandler("^(🙏 Участники)$", attendees)
@@ -595,7 +626,7 @@ def main():
     attendee_handler = RegexHandler("^(💪 Мои тренировки)$", attendee)
     dispatcher.add_handler(attendee_handler)
 
-    event_handler = RegexHandler("^(🏅 Мероприятия)$", get_events)
+    event_handler = RegexHandler("^(🏅 Мероприятия)$", get_events_activities)
     dispatcher.add_handler(event_handler)
 
     wod_handler = RegexHandler("^(🏋 WOD)$", wod)
