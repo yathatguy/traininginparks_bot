@@ -5,6 +5,7 @@ from __future__ import unicode_literals, print_function
 import datetime
 import json
 import os
+import logging
 
 import pymongo
 from bson import json_util
@@ -19,6 +20,8 @@ def get_things(db_name, *args, **kwargs):
 
     user = kwargs.get("user", None)
     activity = kwargs.get("activities", None)
+    logging.critical(user)
+    logging.critical(activity)
 
     # Set up connection with Mongo DB
 
