@@ -20,7 +20,7 @@ def get_things(db_name, *args, **kwargs):
 
     user = kwargs.get("user", None)
     activity = kwargs.get("activities", None)
-    logging.critical(user)
+    logging.critical(kwargs)
     logging.critical(activity)
 
     # Set up connection with Mongo DB
