@@ -69,7 +69,7 @@ def get_trains(bot, update, *args, **kwargs):
     if user:
         trains_list = get_things(db_name, user=user)
     else:
-        trains_list = get_things(db_name)
+        trains_list = get_things(db_name, activities=activity)
     if trains_list:
         iter = 0
         next = iter + step
