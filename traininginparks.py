@@ -25,8 +25,8 @@ import activities
 
 # Set up Updater and Dispatcher
 
-#updater = Updater(token=os.environ['TOKEN'])
-updater = Updater(token="370932219:AAGXeZFMAuY9vJYSt5qns274i1von1cvY4I")
+updater = Updater(token=os.environ['TOKEN'])
+# updater = Updater(token="370932219:AAGXeZFMAuY9vJYSt5qns274i1von1cvY4I")
 updater.stop()
 dispatcher = updater.dispatcher
 
