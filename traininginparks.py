@@ -580,10 +580,10 @@ def text_processing(bot, update):
         whiteboard_results(bot, update, details)
     elif action == "701":
         logging.critical(details)
-        get_trains(bot, update, activity=details)
+        get_trains(bot, update, activities=details)
     elif action == "702":
         logging.critical(details)
-        get_events(bot, update, activity=details)
+        get_events(bot, update, activities=details)
     else:
         logging.critical(update)
 
