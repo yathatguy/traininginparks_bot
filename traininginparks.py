@@ -172,7 +172,7 @@ def pager(bot, update, db_name, iter, step, next, *args, **kwargs):
         buttons = []
         buttons.append(button_prev)
         buttons.append(button_next)
-    elif len(get_things(db_name)) > next:
+    elif len(get_things(db_name, activities=activity)) > next:
         button_prev = telegram.InlineKeyboardButton(text="<", callback_data="301;" + str(next - step) + ";" + db_name)
         button_next = telegram.InlineKeyboardButton(text=">", callback_data="302;" + str(next) + ";" + db_name)
         buttons = []
