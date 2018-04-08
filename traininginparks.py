@@ -64,7 +64,6 @@ def get_trains_activities(bot, update, *args, **kwargs):
 def get_trains(bot, update, *args, **kwargs):
     user = kwargs.get("user", None)
     activity = kwargs.get("activities", None)
-    logging.critical(kwargs)
     query = get_query(bot, update)
     db_name = "trains"
     if user:
@@ -116,7 +115,7 @@ def get_events(bot, update, *args, **kwargs):
                 thing_list(bot, update, db_name, iter, next, user=user, activities=activity)
         else:
             if len(events_list) <= next:
-                thing_list(bot, update, db_name, iter, next, skip_pager=True, )
+                thing_list(bot, update, db_name, iter, next, skip_pager=True, activities=activity)
             else:
                 thing_list(bot, update, db_name, iter, next, activities=activity)
     else:
@@ -133,7 +132,6 @@ def thing_list(bot, update, db_name, iter, next, *args, **kwargs):
         things = get_things(db_name, user=user, activities=activity)
     else:
         things = get_things(db_name, activities=activity)
-    logging.critical(things)
     thing_list = things[iter:next]
     kb = []
     for thing in thing_list:
@@ -666,7 +664,7 @@ def main():
 
         # Update activities for trains / events
 
-        # activities.create_list()
+        activities.create_list()
 
         # Sleep to 60 secs
 
