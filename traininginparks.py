@@ -666,7 +666,7 @@ def main():
 
         # Update activities for trains / events
 
-        activities.create_list()
+        # activities.create_list()
 
         # Sleep to 60 secs
 

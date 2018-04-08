@@ -42,3 +42,11 @@ def keyboard(db_name):
     kb_markup = telegram.InlineKeyboardMarkup(kb)
     connection.close()
     return kb_markup
+
+
+def main():
+    pass
+
+
+if __name__ == '__main__':
+    main()
