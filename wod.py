@@ -12,7 +12,7 @@ import telegram
 from decorators import only_private
 
 connection = pymongo.MongoClient(os.environ['MONGODB_URI'])
-db = connection["heroku_r261ww1k"]
+db = connection["heroku_20w2cn6z"]
 
 
 # connection = pymongo.MongoClient()

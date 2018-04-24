@@ -114,7 +114,7 @@ def dump_mongodb(name, events):
     # Set up connection with Mongo DB
 
     connection = pymongo.MongoClient(os.environ['MONGODB_URI'])
-    db = connection["heroku_r261ww1k"]
+    db = connection["heroku_20w2cn6z"]
 
     # Insert or update events in Mongo DB
 

@@ -162,23 +162,23 @@ def pager(bot, update, db_name, iter, step, next, *args, **kwargs):
     user = kwargs.get("user", None)
     activity = kwargs.get("activities", None)
     if iter - step == 0:
-        button_next = telegram.InlineKeyboardButton(text=">", callback_data="302;" + str(next) + ";" + db_name)
+        button_next = telegram.InlineKeyboardButton(text=">", callback_data="302;" + str(next) + ";" + db_name + ";" + activity)
         buttons = []
         buttons.append(button_next)
     elif user and len(get_things(db_name, user=user, activities=activity)) > next:
-        button_prev = telegram.InlineKeyboardButton(text="<", callback_data="301;" + str(next - step) + ";" + db_name)
-        button_next = telegram.InlineKeyboardButton(text=">", callback_data="302;" + str(next) + ";" + db_name)
+        button_prev = telegram.InlineKeyboardButton(text="<", callback_data="301;" + str(next - step) + ";" + db_name + ";" + activity)
+        button_next = telegram.InlineKeyboardButton(text=">", callback_data="302;" + str(next) + ";" + db_name + ";" + activity)
         buttons = []
         buttons.append(button_prev)
         buttons.append(button_next)
     elif len(get_things(db_name, activities=activity)) > next:
-        button_prev = telegram.InlineKeyboardButton(text="<", callback_data="301;" + str(next - step) + ";" + db_name)
-        button_next = telegram.InlineKeyboardButton(text=">", callback_data="302;" + str(next) + ";" + db_name)
+        button_prev = telegram.InlineKeyboardButton(text="<", callback_data="301;" + str(next - step) + ";" + db_name + ";" + activity)
+        button_next = telegram.InlineKeyboardButton(text=">", callback_data="302;" + str(next) + ";" + db_name + ";" + activity)
         buttons = []
         buttons.append(button_prev)
         buttons.append(button_next)
     else:
-        button_prev = telegram.InlineKeyboardButton(text="<", callback_data="301;" + str(next - step) + ";" + db_name)
+        button_prev = telegram.InlineKeyboardButton(text="<", callback_data="301;" + str(next - step) + ";" + db_name + ";" + activity)
         buttons = []
         buttons.append(button_prev)
     return buttons
@@ -253,7 +253,7 @@ def sign_out(bot, update, db_name, thing_id):
     query = get_query(bot, update)
     thing = get_thing(db_name, thing_id)
     connection = pymongo.MongoClient(os.environ['MONGODB_URI'])
-    db = connection["heroku_r261ww1k"]
+    db = connection["heroku_20w2cn6z"]
     try:
         thing["attendee"].remove(query.message.chat.username)
         db[db_name].update({"id": thing_id}, {"$set": {"attendee": thing["attendee"]}})
@@ -273,7 +273,7 @@ def sign_in(bot, update, db_name, thing_id):
     except Exception as exp:
         logging.critical(exp)
     connection = pymongo.MongoClient(os.environ['MONGODB_URI'])
-    db = connection["heroku_r261ww1k"]
+    db = connection["heroku_20w2cn6z"]
     try:
         if "attendee" not in thing.keys() or query.message.chat.username not in thing["attendee"]:
             db[db_name].update({"id": thing_id}, {"$push": {"attendee": query.message.chat.username}},
@@ -399,7 +399,7 @@ def attendee(bot, update):
 def whiteboard(bot, update):
     query = get_query(bot, update)
     connection = pymongo.MongoClient(os.environ['MONGODB_URI'])
-    db = connection["heroku_r261ww1k"]
+    db = connection["heroku_20w2cn6z"]
 
     if db.benchmarks.find({}).count() == 0:
         bot.sendMessage(text="На данный момент у нас нет комплексов для оценки", chat_id=query.message.chat_id)
@@ -418,7 +418,7 @@ def whiteboard(bot, update):
 def whiteboard_results(bot, update, benchmark_name):
     query = get_query(bot, update)
     connection = pymongo.MongoClient(os.environ['MONGODB_URI'])
-    db = connection["heroku_r261ww1k"]
+    db = connection["heroku_20w2cn6z"]
     benchmark = db.benchmarks.find_one({"name": benchmark_name})
     bot.sendMessage(text=benchmark["name"], chat_id=query.message.chat.id)
     bot.sendMessage(text=benchmark["description"], chat_id=query.message.chat.id)
@@ -531,12 +531,14 @@ def text_processing(bot, update):
                               attendees_list=list_event_attendees("events", details))
     elif action == "301":
         db_name = text[2]
+        activity = text[3]
         details = int(details)
-        thing_list(bot, update, db_name, details - step, details)
+        thing_list(bot, update, db_name, details - step, details, activities=activity)
     elif action == "302":
         db_name = text[2]
+        activity = text[3]
         details = int(details)
-        thing_list(bot, update, db_name, details, details + step)
+        thing_list(bot, update, db_name, details, details + step, activities=activity)
     elif action[0] == "4":
         if action == "401":
             wod_by_mode(bot, update)
@@ -590,7 +592,7 @@ def sendall(bot, update):
     query = get_query(bot, update)
     if query.message.chat.username in ["ya_thatguy", "Ilyazdorenko", "Simple_kap"]:
         connection = pymongo.MongoClient(os.environ['MONGODB_URI'])
-        db = connection["heroku_r261ww1k"]
+        db = connection["heroku_20w2cn6z"]
         client_list = json.loads(json_util.dumps(db["clients"].find({})))
         for client in client_list:
             logging.info(client["username"])

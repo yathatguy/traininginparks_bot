@@ -24,7 +24,7 @@ def get_things(db_name, *args, **kwargs):
     # Set up connection with Mongo DB
 
     connection = pymongo.MongoClient(os.environ['MONGODB_URI'])
-    db = connection["heroku_r261ww1k"]
+    db = connection["heroku_20w2cn6z"]
 
     # Get events
 
@@ -42,7 +42,7 @@ def get_things(db_name, *args, **kwargs):
 
 def get_thing(db_name, id):
     connection = pymongo.MongoClient(os.environ['MONGODB_URI'])
-    db = connection["heroku_r261ww1k"]
+    db = connection["heroku_20w2cn6z"]
     event = db[db_name].find_one({"id": id})
     event = json.loads(json_util.dumps(event))
     connection.close()

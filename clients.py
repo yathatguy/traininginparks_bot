@@ -8,7 +8,7 @@ import pymongo
 import telegram
 
 connection = pymongo.MongoClient(os.environ['MONGODB_URI'])
-db = connection["heroku_r261ww1k"]
+db = connection["heroku_20w2cn6z"]
 
 if "clients" not in db.collection_names() or db.clients.count() == 0:
     db.clients.insert({"username": "", "name": "", "surname": ""})
