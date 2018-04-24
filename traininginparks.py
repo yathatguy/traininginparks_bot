@@ -223,7 +223,7 @@ def sign_out(bot, update, db_name, thing_id):
     query = get_query(bot, update)
     thing = get_thing(db_name, thing_id)
     connection = pymongo.MongoClient(os.environ['MONGODB_URI'])
-    db = connection["heroku_r261ww1k"]
+    db = connection["heroku_20w2cn6z"]
     try:
         thing["attendee"].remove(query.message.chat.username)
         db[db_name].update({"id": thing_id}, {"$set": {"attendee": thing["attendee"]}})
@@ -243,7 +243,7 @@ def sign_in(bot, update, db_name, thing_id):
     except Exception as exp:
         logging.critical(exp)
     connection = pymongo.MongoClient(os.environ['MONGODB_URI'])
-    db = connection["heroku_r261ww1k"]
+    db = connection["heroku_20w2cn6z"]
     try:
         if "attendee" not in thing.keys() or query.message.chat.username not in thing["attendee"]:
             db[db_name].update({"id": thing_id}, {"$push": {"attendee": query.message.chat.username}},
@@ -369,7 +369,7 @@ def attendee(bot, update):
 def whiteboard(bot, update):
     query = get_query(bot, update)
     connection = pymongo.MongoClient(os.environ['MONGODB_URI'])
-    db = connection["heroku_r261ww1k"]
+    db = connection["heroku_20w2cn6z"]
 
     if db.benchmarks.find({}).count() == 0:
         bot.sendMessage(text="На данный момент у нас нет комплексов для оценки", chat_id=query.message.chat_id)
@@ -388,7 +388,7 @@ def whiteboard(bot, update):
 def whiteboard_results(bot, update, benchmark_name):
     query = get_query(bot, update)
     connection = pymongo.MongoClient(os.environ['MONGODB_URI'])
-    db = connection["heroku_r261ww1k"]
+    db = connection["heroku_20w2cn6z"]
     benchmark = db.benchmarks.find_one({"name": benchmark_name})
     bot.sendMessage(text=benchmark["name"], chat_id=query.message.chat.id)
     bot.sendMessage(text=benchmark["description"], chat_id=query.message.chat.id)
@@ -554,7 +554,7 @@ def sendall(bot, update):
     query = get_query(bot, update)
     if query.message.chat.username in ["ya_thatguy", "Ilyazdorenko", "Simple_kap"]:
         connection = pymongo.MongoClient(os.environ['MONGODB_URI'])
-        db = connection["heroku_r261ww1k"]
+        db = connection["heroku_20w2cn6z"]
         client_list = json.loads(json_util.dumps(db["clients"].find({})))
         for client in client_list:
             logging.info(client["username"])
