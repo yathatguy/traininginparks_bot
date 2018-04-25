@@ -15,7 +15,7 @@ from time import time, sleep
 
 from clients import log_client, check_username
 from decorators import only_private
-from google_calendar import dump_calendar_event, dump_calendar, dump_mongodb
+from bin.google_calendar import dump_calendar_event
 from keyboard import keyboard
 from maps_api import get_coordinates
 from mongodata import get_things, get_thing
