@@ -15,7 +15,7 @@ from time import time, sleep
 
 from clients import log_client, check_username
 from decorators import only_private
-from google_calendar import dump_calendar_event, dump_calendar, dump_mongodb
+from bin.google_calendar import dump_calendar_event
 from keyboard import keyboard
 from maps_api import get_coordinates
 from mongodata import get_things, get_thing
@@ -610,26 +610,6 @@ def main():
     # Poll user actions
 
     updater.start_polling()
-
-    starttime = time()
-
-    while True:
-        # Dump events from Google Calendar and update MongoDB
-
-        train_calendar = os.environ['TRAIN_CALENDAR_ID']
-        trains = dump_calendar(train_calendar, 10)
-        dump_mongodb("trains", trains)
-
-        # Dump events from Google Calendar and update MongoDB
-
-        events_calendar = os.environ['EVENTS_CALENDAR_ID']
-        events = dump_calendar(events_calendar, 30)
-        dump_mongodb("events", events)
-
-        # Sleep to 60 secs
-
-        sleep(60.0 - ((time() - starttime) % 60.0))
-
     updater.idle()
 
 if __name__ == '__main__':
