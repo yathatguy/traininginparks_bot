@@ -1,1 +1,1 @@
-worker: python2 traininginparks.py
+worker: python traininginparks.py

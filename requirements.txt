@@ -1,7 +1,7 @@
 email==4.0.2
 utils==0.9.0
 six==1.11.0
-python-telegram-bot==7.0.1
+python-telegram-bot==10.0.1
 future==0.16.0
 pymongo==3.3.1
 apiclient==1.0.3
