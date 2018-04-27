@@ -25,7 +25,8 @@ import activities
 
 # Set up Updater and Dispatcher
 
-updater = Updater(token=os.environ['TOKEN'])
+# updater = Updater(token=os.environ['TOKEN'])
+updater = Updater(token="370932219:AAGXeZFMAuY9vJYSt5qns274i1von1cvY4I")
 updater.stop()
 dispatcher = updater.dispatcher
 
@@ -147,7 +148,15 @@ def thing_list(bot, update, db_name, iter, next, *args, **kwargs):
         iter += 1
     skip_pager = kwargs.get("skip_pager", False)
     if not skip_pager:
-        kb.append(pager(bot, update, db_name, iter, step, next))
+        if user:
+            if activity:
+                kb.append(pager(bot, update, db_name, iter, step, next, user=user, activities=activity))
+            else:
+                kb.append(pager(bot, update, db_name, iter, step, next, user=user))
+        elif activity:
+            kb.append(pager(bot, update, db_name, iter, step, next, activities=activity))
+        else:
+            kb.append(pager(bot, update, db_name, iter, step, next))
     kb_markup = telegram.InlineKeyboardMarkup(kb)
     if db_name == "trains":
         bot.sendMessage(text="Расписание следующих тренировок:", chat_id=chat_id, reply_markup=kb_markup)
@@ -161,26 +170,48 @@ def thing_list(bot, update, db_name, iter, next, *args, **kwargs):
 def pager(bot, update, db_name, iter, step, next, *args, **kwargs):
     user = kwargs.get("user", None)
     activity = kwargs.get("activities", None)
-    if iter - step == 0:
-        button_next = telegram.InlineKeyboardButton(text=">", callback_data="302;" + str(next) + ";" + db_name + ";" + activity)
-        buttons = []
-        buttons.append(button_next)
-    elif user and len(get_things(db_name, user=user, activities=activity)) > next:
-        button_prev = telegram.InlineKeyboardButton(text="<", callback_data="301;" + str(next - step) + ";" + db_name + ";" + activity)
-        button_next = telegram.InlineKeyboardButton(text=">", callback_data="302;" + str(next) + ";" + db_name + ";" + activity)
-        buttons = []
-        buttons.append(button_prev)
-        buttons.append(button_next)
-    elif len(get_things(db_name, activities=activity)) > next:
-        button_prev = telegram.InlineKeyboardButton(text="<", callback_data="301;" + str(next - step) + ";" + db_name + ";" + activity)
-        button_next = telegram.InlineKeyboardButton(text=">", callback_data="302;" + str(next) + ";" + db_name + ";" + activity)
-        buttons = []
-        buttons.append(button_prev)
-        buttons.append(button_next)
+    if activity:
+        if iter - step == 0:
+            button_next = telegram.InlineKeyboardButton(text=">", callback_data="302;" + str(next).decode('unicode-escape') + ";" + db_name + ";" + activity)
+            buttons = []
+            buttons.append(button_next)
+        elif user and len(get_things(db_name, user=user, activities=activity)) > next:
+            button_prev = telegram.InlineKeyboardButton(text="<", callback_data="301;" + str(next - step).decode('unicode-escape') + ";" + db_name + ";" + activity)
+            button_next = telegram.InlineKeyboardButton(text=">", callback_data="302;" + str(next).decode('unicode-escape') + ";" + db_name + ";" + activity)
+            buttons = []
+            buttons.append(button_prev)
+            buttons.append(button_next)
+        elif len(get_things(db_name, activities=activity)) > next:
+            button_prev = telegram.InlineKeyboardButton(text="<", callback_data="301;" + str(next - step).decode('unicode-escape') + ";" + db_name + ";" + activity)
+            button_next = telegram.InlineKeyboardButton(text=">", callback_data="302;" + str(next).decode('unicode-escape') + ";" + db_name + ";" + activity)
+            buttons = []
+            buttons.append(button_prev)
+            buttons.append(button_next)
+        else:
+            button_prev = telegram.InlineKeyboardButton(text="<", callback_data="301;" + str(next - step) + ";" + db_name + ";" + activity)
+            buttons = []
+            buttons.append(button_prev)
     else:
-        button_prev = telegram.InlineKeyboardButton(text="<", callback_data="301;" + str(next - step) + ";" + db_name + ";" + activity)
-        buttons = []
-        buttons.append(button_prev)
+        if iter - step == 0:
+            button_next = telegram.InlineKeyboardButton(text=">", callback_data="302;" + str(next).decode('unicode-escape') + ";" + db_name + ";")
+            buttons = []
+            buttons.append(button_next)
+        elif user and len(get_things(db_name, user=user, activities=activity)) > next:
+            button_prev = telegram.InlineKeyboardButton(text="<", callback_data="301;" + str(next - step).decode('unicode-escape') + ";" + db_name + ";")
+            button_next = telegram.InlineKeyboardButton(text=">", callback_data="302;" + str(next).decode('unicode-escape') + ";" + db_name + ";")
+            buttons = []
+            buttons.append(button_prev)
+            buttons.append(button_next)
+        elif len(get_things(db_name, activities=activity)) > next:
+            button_prev = telegram.InlineKeyboardButton(text="<", callback_data="301;" + str(next - step).decode('unicode-escape') + ";" + db_name + ";")
+            button_next = telegram.InlineKeyboardButton(text=">", callback_data="302;" + str(next).decode('unicode-escape') + ";" + db_name + ";")
+            buttons = []
+            buttons.append(button_prev)
+            buttons.append(button_next)
+        else:
+            button_prev = telegram.InlineKeyboardButton(text="<", callback_data="301;" + str(next - step) + ";" + db_name + ";")
+            buttons = []
+            buttons.append(button_prev)
     return buttons
 
 
@@ -648,30 +679,6 @@ def main():
     # Poll user actions
 
     updater.start_polling()
-
-    starttime = time()
-
-    while True:
-        # Dump events from Google Calendar and update MongoDB
-
-        train_calendar = os.environ['TRAIN_CALENDAR_ID']
-        trains = dump_calendar(train_calendar, 10)
-        dump_mongodb("trains", trains)
-
-        # Dump events from Google Calendar and update MongoDB
-
-        events_calendar = os.environ['EVENTS_CALENDAR_ID']
-        events = dump_calendar(events_calendar, 30)
-        dump_mongodb("events", events)
-
-        # Update activities for trains / events
-
-        activities.create_list()
-
-        # Sleep to 60 secs
-
-        sleep(60.0 - ((time() - starttime) % 60.0))
-
     updater.idle()
 
 if __name__ == '__main__':
