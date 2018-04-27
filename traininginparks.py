@@ -347,7 +347,7 @@ def get_train_attendees(bot, update):
             attendees_list = list_event_attendees(db_name="trains", event=train["id"])
             print_event_attendees(bot, update, train["start"]["dateTime"], train["summary"], attendees_list)
     else:
-        bot.sendMessage(chat_id=query.message.chat.id, text="Нет трениировок, нет и записавшихся.")
+        bot.sendMessage(chat_id=query.message.chat.id, text="Нет тренировок, нет и записавшихся.")
 
 
 def get_event_attendees(bot, update):
