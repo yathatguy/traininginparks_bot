@@ -1,13 +1,12 @@
 # -*- coding: utf-8 -*-
 
-from __future__ import unicode_literals, print_function
+from __future__ import print_function, unicode_literals
 
 import json
 import logging
 import os
-import pymongo
 import requests
-
+import pymongo
 
 BASE = "https://api.typeform.com/"
 TYPEFORM_KEY = os.environ["TYPEFORM_KEY"]
@@ -25,7 +24,8 @@ def get_responses(form_id):
         logging.debug(r)
         return r.json()
     except Exception as e:
-        logging.critical(r.json())
+        logging.critical(e)
+        logging.debug(r.json())
         return None
 
 
@@ -118,13 +118,23 @@ def update_db(db_records):
     db["results"].insert_many([db_records])
     connection.close()
 
+
 def create_category_list(results):
     category_list = list()
     for result in results:
         if result["category"] not in category_list:
             category_list.append(result["category"])
     logging.debug(category_list)
+    dump_category(category_list)
     return category_list
+
+
+def dump_category(category_list):
+    connection = pymongo.MongoClient(os.environ['MONGODB_URI'])
+    db = connection["heroku_20w2cn6z"]
+    db["results_category"].remove()
+    db["results_category"].insert_many([{"categories": category_list}])
+    connection.close()
 
 
 def create_db_records(results, categoty_list):

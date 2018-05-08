@@ -19,13 +19,12 @@ from google_calendar import dump_calendar_event
 from keyboard import keyboard
 from maps_api import get_coordinates
 from mongodata import get_things, get_thing
-from wod import wod, wod_info, wod_by_mode, wod_by_modality, wod_amrap, wod_emom, wod_rt, wod_strength, wod_time, \
-    wod_modality
 import activities
 
 # Set up Updater and Dispatcher
 
-updater = Updater(token=os.environ['TOKEN'])
+#updater = Updater(token=os.environ['TOKEN'])
+updater = Updater(token="370932219:AAGXeZFMAuY9vJYSt5qns274i1von1cvY4I")
 updater.stop()
 dispatcher = updater.dispatcher
 
@@ -93,6 +92,72 @@ def get_events_activities(bot, update, *args, **kwargs):
     db_name = "events"
     kb_markup = activities.keyboard(db_name)
     bot.sendMessage(text="Какая категория соревнований тебя интересует?", chat_id=query.message.chat.id, reply_markup=kb_markup)
+
+
+@only_private
+def results(bot, update, *args, **kwargs):
+    query = get_query(bot, update)
+    kb = []
+    text_submit = "Занести результат"
+    submit = telegram.InlineKeyboardButton(text=text_submit, callback_data="401;")
+    text_look = "Посмотреть результаты"
+    look = telegram.InlineKeyboardButton(text=text_look, callback_data="402;")
+    kb.append([submit])
+    kb.append([look])
+    kb_markup = telegram.InlineKeyboardMarkup(kb)
+    bot.sendMessage(text="Посмотреть или обновить свои результаты?", chat_id=query.message.chat.id, reply_markup=kb_markup)
+
+
+def submit_results(bot, update):
+    query = get_query(bot, update)
+    kb = []
+    text_run = "🏃 Беговые"
+    run = telegram.InlineKeyboardButton(text=text_run, url="https://traininginparks.typeform.com/to/aocZvF")
+    text_weight = "🏋️‍♀️ Силовые"
+    weight = telegram.InlineKeyboardButton(text=text_weight, url="https://traininginparks.typeform.com/to/LzjVO3")
+    kb.append([run])
+    kb.append([weight])
+    kb_markup = telegram.InlineKeyboardMarkup(kb)
+    bot.sendMessage(text="Что за результаты у тебя?\n(твои результаты появятся в течение 10 минут после занесения)", chat_id=query.message.chat.id, reply_markup=kb_markup)
+
+
+def view_results(bot, update):
+    query = get_query(bot, update)
+    kb = []
+    text_private = "🙋🏻‍♂️ Свои результаты"
+    private = telegram.InlineKeyboardButton(text=text_private, callback_data="411")
+    text_public = "👨‍👩‍👧‍👦 Все результаты"
+    public = telegram.InlineKeyboardButton(text=text_public, callback_data="412")
+    kb.append([private])
+    kb.append([public])
+    kb_markup = telegram.InlineKeyboardMarkup(kb)
+    bot.sendMessage(text="Свои или чужие результаты интересуют?", chat_id=query.message.chat.id, reply_markup=kb_markup)
+
+
+def view_my_results(bot, update):
+    query = get_query(bot, update)
+    connection = pymongo.MongoClient(os.environ['MONGODB_URI'])
+    db = connection["heroku_20w2cn6z"]
+    for result in db["results"].find({"results.user": {"$eq": query.message.chat.username}}):
+        logging.critical(result)
+        text = "{}\n{}: {}".format(result["category"], result["results"][0]["date"], result["results"][0]["result"])
+        bot.sendMessage(text=text, chat_id=query.message.chat.id)
+    connection.close()
+
+
+def view_all_results(bot, update):
+    query = get_query(bot, update)
+    connection = pymongo.MongoClient(os.environ['MONGODB_URI'])
+    db = connection["heroku_20w2cn6z"]
+    categories_all = db["results_category"].find({})
+    for categories in categories_all:
+        for category in categories["categories"]:
+            results = db["results"].find({"category": category}, limit=10)
+            if results.count() > 0:
+                bot.sendMessage(text=category, chat_id=query.message.chat.id)
+                for result in results:
+                    text = "{}: {} (@{})".format(result["results"][0]["date"], result["results"][0]["result"], result["results"][0]["user"])
+                    bot.sendMessage(text=text, chat_id=query.message.chat.id)
 
 
 def get_events(bot, update, *args, **kwargs):
@@ -220,7 +285,7 @@ def train_details(bot, update, train):
     query = get_query(bot, update)
     kb = []
     try:
-        if "attendee" in train.keys() and query.message.chat.username in train["attendee"]:
+        if "attendee" in train and query.message.chat.username in train["attendee"]:
             text_sign = "❌ Не смогу прийти"
             signup = telegram.InlineKeyboardButton(text=text_sign, callback_data="101;" + str(train["id"]))
         else:
@@ -256,7 +321,7 @@ def event_details(bot, update, event):
     query = get_query(bot, update)
     kb = []
     try:
-        if "attendee" in event.keys() and query.message.chat.username in event["attendee"]:
+        if "attendee" in event and query.message.chat.username in event["attendee"]:
             text_sign = "❌ Не смогу прийти"
             signup = telegram.InlineKeyboardButton(text=text_sign, callback_data="201;" + str(event["id"]))
         else:
@@ -305,7 +370,7 @@ def sign_in(bot, update, db_name, thing_id):
     connection = pymongo.MongoClient(os.environ['MONGODB_URI'])
     db = connection["heroku_20w2cn6z"]
     try:
-        if "attendee" not in thing.keys() or query.message.chat.username not in thing["attendee"]:
+        if "attendee" not in thing or query.message.chat.username not in thing["attendee"]:
             db[db_name].update({"id": thing_id}, {"$push": {"attendee": query.message.chat.username}},
                                upsert=True)
             bot.sendMessage(text="Отлично, записались!", chat_id=query.message.chat_id)
@@ -365,7 +430,7 @@ def get_event_attendees(bot, update):
 
 def list_event_attendees(db_name, event):
     one_event = get_thing(db_name, event)
-    if "attendee" in one_event.keys() and len(one_event["attendee"]) > 0:
+    if "attendee" in one_event and len(one_event["attendee"]) > 0:
         attendees_list = ''
         for attendee in one_event["attendee"]:
             attendees_list = attendees_list + ' @' + attendee
@@ -392,7 +457,7 @@ def thing_loc(bot, update, db_name, thing_id):
     query = get_query(bot, update)
     thing = get_thing(db_name, thing_id)
     cal_event = dump_calendar_event(thing["organizer"]["email"], thing)
-    if "location" in cal_event.keys():
+    if "location" in cal_event:
         coordinates = get_coordinates(cal_event["location"])
         if bool(coordinates):
             bot.send_venue(chat_id=query.message.chat.id, latitude=coordinates["lat"],
@@ -409,7 +474,7 @@ def event_info(bot, update, event_id):
     query = get_query(bot, update)
     event = get_thing("events", event_id)
     cal_event = dump_calendar_event(event["organizer"]["email"], event)
-    if "description" in cal_event.keys():
+    if "description" in cal_event:
         text = cal_event["description"]
         bot.sendMessage(text=text, chat_id=query.message.chat.id)
     else:
@@ -458,9 +523,9 @@ def whiteboard_results(bot, update, benchmark_name):
     else:
         for man in sorted(sorted(benchmark["results"], key=lambda k: k["result"]), key=lambda m: m["mode"]):
             text = "@" + man["name"] + ":\t" + man["result"]
-            if "mode" in man.keys():
+            if "mode" in man:
                 text = text + "\t(" + man["mode"] + ")"
-            if "video" in man.keys():
+            if "video" in man:
                 text = text + "\t" + man["video"]
             bot.sendMessage(text=text, chat_id=query.message.chat.id, disable_web_page_preview=True)
     connection.close()
@@ -498,14 +563,8 @@ def text_processing(bot, update):
     # 205 - event attendees
     # 301 - pager: next
     # 302 - pager: prev
-    # 401 - wod by mode
-    # 402 - wod by modality
-    # 411 - wod mode: EMOM
-    # 421 - wod mode: AMRAP
-    # 431 - wod mode: For reps and time
-    # 441 - wod mode: For time
-    # 451 - wod mode: strength
-    # 412 - wod modality: selection
+    # 401 - submit result
+    # 402 - view results
     # 501 - attendees for trains
     # 502 - attendees for events
     # 601 - whiteboard results
@@ -569,39 +628,14 @@ def text_processing(bot, update):
         activity = text[3]
         details = int(details)
         thing_list(bot, update, db_name, details, details + step, activities=activity)
-    elif action[0] == "4":
-        if action == "401":
-            wod_by_mode(bot, update)
-        elif action == "403":
-            wod_info(bot, update)
-        elif action == "411":
-            wod_emom(bot, update)
-        elif action == "421":
-            wod_amrap(bot, update)
-        elif action == "431":
-            wod_rt(bot, update)
-        elif action == "441":
-            wod_time(bot, update)
-        elif action == "451":
-            wod_strength(bot, update)
-        elif action == "402":
-            wod_by_modality(bot, update)
-        elif action == "412":
-            modality_str = details
-            modality = modality_str.split(", ")
-            wod_modality(bot, update, modality)
-    elif action == "wod_emom":
-        wod_emom(bot, update)
-    elif action == "wod_amrap":
-        wod_amrap(bot, update)
-    elif action == "wod_rt":
-        wod_rt(bot, update)
-    elif action == "wod_time":
-        wod_time(bot, update)
-    elif action == "wod_strength":
-        wod_strength(bot, update)
-    elif action == "wod_modality":
-        wod_modality(bot, update, details)
+    elif action == "401":
+        submit_results(bot, update)
+    elif action == "402":
+        view_results(bot, update)
+    elif action == "411":
+        view_my_results(bot, update)
+    elif action == "412":
+        view_all_results(bot, update)
     elif action == "501":
         get_train_attendees(bot, update)
     elif action == "502":
@@ -657,14 +691,14 @@ def main():
     attendee_handler = RegexHandler("^(💪 Мои тренировки)$", attendee)
     dispatcher.add_handler(attendee_handler)
 
-    event_handler = RegexHandler("^(🏅 Мероприятия)$", get_events_activities)
+    event_handler = RegexHandler("^(📅 Мероприятия)$", get_events_activities)
     dispatcher.add_handler(event_handler)
-
-    wod_handler = RegexHandler("^(🏋 WOD)$", wod)
-    dispatcher.add_handler(wod_handler)
 
     whiteboard_handler = RegexHandler("^(🏁 Соревнования)$", whiteboard)
     dispatcher.add_handler(whiteboard_handler)
+
+    event_handler = RegexHandler("^(🏅 Успехи)$", results)
+    dispatcher.add_handler(event_handler)
 
     message_handler = CallbackQueryHandler(text_processing)
     dispatcher.add_handler(message_handler)
