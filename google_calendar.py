@@ -178,10 +178,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-
-# DOC: https://developers.google.com/api-client-library/python/auth/service-accounts
-# DOC: https://developers.google.com/resources/api-libraries/documentation/calendar/v3/python/latest/index.html
-# DOC: http://pythonhosted.org/python-telegram-bot/
-# DOC = "https://python-telegram-bot.readthedocs.io"
-# https://maps.googleapis.com/maps/api/geocode/json?address=CrossfitDozen&key=AIzaSyDY9JokHXZsH5yanc-lWUsiexVtuCls27k

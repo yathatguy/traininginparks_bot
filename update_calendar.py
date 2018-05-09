@@ -17,7 +17,7 @@ def main():
     # Dump events from Google Calendar and update MongoDB
 
     events_calendar = os.environ['EVENTS_CALENDAR_ID']
-    events = dump_calendar(events_calendar, 30)
+    events = dump_calendar(events_calendar, 50)
     dump_mongodb("events", events)
 
 

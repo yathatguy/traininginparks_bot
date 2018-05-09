@@ -25,6 +25,7 @@ The following env variables are set up to run bot:
 - `TRAIN_CALENDAR_ID`: Calendar ID in [Google Calendar](https://calendar.google.com) for trains
 - `EBENTS_CALENDAR_ID`: Calendar ID in [Google Calendar](https://calendar.google.com) for events
 - `MONGODB_URI`: URI with auth to connnect MongoDB
+- `TYPEFORM_KEY`: API key from typeform.com form constructor
 - `LOGDNA_KEY`: Key for LogDNA service
 - `MAPS_API`: Google Maps API key
 - `YANDEX_PASSWORD`: password for `traininginparks@yandex.ru` account
