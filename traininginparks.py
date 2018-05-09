@@ -158,7 +158,7 @@ def view_all_results(bot, update):
             if results.count() > 0:
                 bot.sendMessage(text="```" + category + "```" + "\n(Первые 5 результатов)", chat_id=query.message.chat.id)
                 for result in results:
-                    for person in result:
+                    for person in result["results"]:
                         text = "{}: {} (@{})".format(person["date"], person["result"], person["user"])
                         bot.sendMessage(text=text, chat_id=query.message.chat.id)
     categories_all.close()
