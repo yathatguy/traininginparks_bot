@@ -23,6 +23,7 @@ def create_list():
     connection.close()
     return True
 
+
 def main():
     create_list()
 

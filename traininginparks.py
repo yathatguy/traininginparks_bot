@@ -97,9 +97,9 @@ def get_events_activities(bot, update, *args, **kwargs):
 def results(bot, update, *args, **kwargs):
     query = get_query(bot, update)
     kb = []
-    text_submit = "Занести результат"
+    text_submit = "🗒 Занести результат"
     submit = telegram.InlineKeyboardButton(text=text_submit, callback_data="401;")
-    text_look = "Посмотреть результаты"
+    text_look = "📈 Посмотреть результаты"
     look = telegram.InlineKeyboardButton(text=text_look, callback_data="402;")
     kb.append([submit])
     kb.append([look])
