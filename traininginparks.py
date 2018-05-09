@@ -113,7 +113,7 @@ def submit_results(bot, update):
     kb = []
     text_run = "🏃 Беговые"
     run = telegram.InlineKeyboardButton(text=text_run, url="https://traininginparks.typeform.com/to/aocZvF")
-    text_weight = "🏋️‍♀️ Силовые"
+    text_weight = "🏋️‍ Силовые"
     weight = telegram.InlineKeyboardButton(text=text_weight, url="https://traininginparks.typeform.com/to/LzjVO3")
     kb.append([run])
     kb.append([weight])

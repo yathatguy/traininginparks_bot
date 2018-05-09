@@ -49,15 +49,15 @@ def get_run_results(responses):
                         user_response["media"] = answer["url"]
                 if answer["field"]["id"] == "Nq1mrP1EZyCH":
                     user_response["user"] = answer["text"].strip("@")
-                if answer["field"]["id"] == "DGnjz8jMwMfD":
+                if answer["field"]["id"] == "GoJk4PUJAVQa":
                     hours = answer["number"]
                 if answer["field"]["id"] == "xJUGyXwKnU6n":
                     minutes = answer["number"]
-                if answer["field"]["id"] == "GoJk4PUJAVQa":
+                if answer["field"]["id"] == "DGnjz8jMwMfD":
                     seconds = answer["number"]
             if hours != None and minutes != None and seconds != None:
                 user_response["result"] = "{} hours {} minutes {} seconds".format(hours, minutes, seconds)
-    run_results.append(user_response)
+            run_results.append(user_response)
     logging.debug(user_response)
     logging.debug(run_results)
     return run_results
@@ -89,7 +89,7 @@ def get_weight_results(responses):
                     g = answer["number"]
             if kg != None and g != None:
                 user_response["result"] = "{} kg {} g".format(kg, g)
-    weight_results.append(user_response)
+            weight_results.append(user_response)
     logging.debug(user_response)
     logging.debug(weight_results)
     return weight_results
@@ -115,7 +115,7 @@ def update_db(db_records):
     connection = pymongo.MongoClient(os.environ['MONGODB_URI'])
     db = connection["heroku_20w2cn6z"]
     db["results"].remove()
-    db["results"].insert_many([db_records])
+    db["results"].insert_many(db_records)
     connection.close()
 
 
@@ -138,14 +138,17 @@ def dump_category(category_list):
 
 
 def create_db_records(results, categoty_list):
-    db_records = dict()
+    db_records = list()
     for category in categoty_list:
-        db_records["category"] = category
-        db_records["results"] = list()
+        db_record = dict()
+        db_record["category"] = category
+        db_record["results"] = list()
         for result in results:
-            if "category" in  result and result["category"] == db_records["category"]:
+            if "category" in  result and result["category"] == db_record["category"]:
                 del result["category"]
-                db_records["results"].append(result)
+                db_record["results"].append(result)
+        db_records.append(db_record)
+    logging.debug(db_records)
     return db_records
 
 
