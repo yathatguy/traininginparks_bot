@@ -154,13 +154,13 @@ def view_all_results(bot, update):
     categories_all = db["results_category"].find({})
     for categories in categories_all:
         for category in categories["categories"]:
-            results = db["results"].find({"category": category}, limit=10).sort("results.result", pymongo.DESCENDING)
+            results = db["results"].find({"category": category}, limit=5).sort("results.result", pymongo.DESCENDING)
             if results.count() > 0:
-                logging.critical(results.count())
-                bot.sendMessage(text="```" + category + "```", chat_id=query.message.chat.id)
+                bot.sendMessage(text="```" + category + "```" + "\n(Первые 5 результатов)", chat_id=query.message.chat.id)
                 for result in results:
-                    text = "{}: {} (@{})".format(result["results"][0]["date"], result["results"][0]["result"], result["results"][0]["user"])
-                    bot.sendMessage(text=text, chat_id=query.message.chat.id)
+                    for person in result:
+                        text = "{}: {} (@{})".format(person["date"], person["result"], person["user"])
+                        bot.sendMessage(text=text, chat_id=query.message.chat.id)
     categories_all.close()
 
 
