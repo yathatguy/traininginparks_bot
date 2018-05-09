@@ -100,6 +100,7 @@ def results(bot, update, *args, **kwargs):
     text_submit = "🗒 Занести результат"
     submit = telegram.InlineKeyboardButton(text=text_submit, callback_data="401;")
     text_look = "📈 Посмотреть результаты"
+
     look = telegram.InlineKeyboardButton(text=text_look, callback_data="402;")
     kb.append([submit])
     kb.append([look])
