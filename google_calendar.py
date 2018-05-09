@@ -7,6 +7,7 @@ import json
 import os
 import random
 import time
+import logging
 
 import pymongo
 from apiclient import errors
@@ -85,6 +86,23 @@ def dump_calendar_event(calendar, event):
     return cal_event
 
 
+def parse_activities(text):
+    if text == "":
+        return None
+    if text[0] == "[":
+        activities_raw = str()
+        for char in text[1:]:
+            if char != "]":
+                activities_raw += char
+            else:
+                activities_list = activities_raw.split(",")
+                activities = list()
+                for activity in activities_list:
+                    activities.append(activity.strip(" "))
+                return activities
+    else:
+        return ["Без категории"]
+
 def dump_mongodb(name, events):
     """
     Get list of dicts with events and update Mongo DB with actual information
@@ -109,6 +127,10 @@ def dump_mongodb(name, events):
         else:
             event["start"]["date"] = event["start"]["dateTime"].split("T")[0]
 
+        # Get event type
+
+        event["type"] = parse_activities(event["summary"])
+
         # Update MongoDB
 
         db[name].update({"id": event["id"]}, {"$set": {"id": event["id"],
@@ -124,6 +146,7 @@ def dump_mongodb(name, events):
                                                        "summary": event["summary"],
                                                        "start": event["start"],
                                                        "etag": event["etag"],
+                                                       "type": event["type"],
                                                        "organizer": event["organizer"],
                                                        "creator": event["creator"]
                                                        }}, upsert=True)
