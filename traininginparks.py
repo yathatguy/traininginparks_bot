@@ -151,12 +151,13 @@ def view_all_results(bot, update):
     categories_all = db["results_category"].find({})
     for categories in categories_all:
         for category in categories["categories"]:
-            results = db["results"].find({"category": category}, limit=10)
+            results = db["results"].find({"category": category}, limit=10).sort("results.result", pymongo.DESCENDING)
             if results.count() > 0:
                 bot.sendMessage(text=category, chat_id=query.message.chat.id)
                 for result in results:
                     text = "{}: {} (@{})".format(result["results"][0]["date"], result["results"][0]["result"], result["results"][0]["user"])
                     bot.sendMessage(text=text, chat_id=query.message.chat.id)
+    categories_all.close()
 
 
 def get_events(bot, update, *args, **kwargs):
@@ -497,7 +498,6 @@ def whiteboard(bot, update):
 
     if db.benchmarks.find({}).count() == 0:
         bot.sendMessage(text="На данный момент у нас нет комплексов для оценки", chat_id=query.message.chat_id)
-        return
 
     benchmarks = db.benchmarks.find({}).sort("date", pymongo.DESCENDING)
     kb = []
@@ -506,6 +506,7 @@ def whiteboard(bot, update):
         kb.append([button])
     kb_markup = telegram.InlineKeyboardMarkup(kb)
     bot.sendMessage(text="Выбирай комплекс:", chat_id=query.message.chat_id, reply_markup=kb_markup)
+    benchmarks.close()
     connection.close()
 
 
@@ -527,6 +528,7 @@ def whiteboard_results(bot, update, benchmark_name):
             if "video" in man:
                 text = text + "\t" + man["video"]
             bot.sendMessage(text=text, chat_id=query.message.chat.id, disable_web_page_preview=True)
+    benchmark.close()
     connection.close()
 
 
