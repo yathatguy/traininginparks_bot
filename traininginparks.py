@@ -139,7 +139,7 @@ def view_my_results(bot, update):
     connection = pymongo.MongoClient(os.environ['MONGODB_URI'])
     db = connection["heroku_20w2cn6z"]
     for result in db["results"].find({"results.user": {"$eq": query.message.chat.username}}):
-        if result.count() > 0:
+        if result:
             text = "{}\n{}: {}".format(result["category"], result["results"][0]["date"], result["results"][0]["result"])
             bot.sendMessage(text=text, chat_id=query.message.chat.id)
         else:
