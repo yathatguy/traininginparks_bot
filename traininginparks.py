@@ -156,6 +156,7 @@ def view_all_results(bot, update):
         for category in categories["categories"]:
             results = db["results"].find({"category": category}, limit=10).sort("results.result", pymongo.DESCENDING)
             if results.count() > 0:
+                logging.critical(results.count())
                 bot.sendMessage(text="```" + category + "```", chat_id=query.message.chat.id)
                 for result in results:
                     text = "{}: {} (@{})".format(result["results"][0]["date"], result["results"][0]["result"], result["results"][0]["user"])
