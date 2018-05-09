@@ -139,8 +139,11 @@ def view_my_results(bot, update):
     connection = pymongo.MongoClient(os.environ['MONGODB_URI'])
     db = connection["heroku_20w2cn6z"]
     for result in db["results"].find({"results.user": {"$eq": query.message.chat.username}}):
-        text = "{}\n{}: {}".format(result["category"], result["results"][0]["date"], result["results"][0]["result"])
-        bot.sendMessage(text=text, chat_id=query.message.chat.id)
+        if result.count() > 0:
+            text = "{}\n{}: {}".format(result["category"], result["results"][0]["date"], result["results"][0]["result"])
+            bot.sendMessage(text=text, chat_id=query.message.chat.id)
+        else:
+            bot.sendMessage(text="Ты пока не заносил свои результаты.", chat_id=query.message.chat.id)
     connection.close()
 
 
@@ -153,7 +156,7 @@ def view_all_results(bot, update):
         for category in categories["categories"]:
             results = db["results"].find({"category": category}, limit=10).sort("results.result", pymongo.DESCENDING)
             if results.count() > 0:
-                bot.sendMessage(text=category, chat_id=query.message.chat.id)
+                bot.sendMessage(text="```" + category + "```", chat_id=query.message.chat.id)
                 for result in results:
                     text = "{}: {} (@{})".format(result["results"][0]["date"], result["results"][0]["result"], result["results"][0]["user"])
                     bot.sendMessage(text=text, chat_id=query.message.chat.id)
