@@ -25,7 +25,7 @@ def get_responses(form_id):
         return r.json()
     except Exception as e:
         logging.critical(e)
-        logging.debug(r.json())
+        logging.debug(r.text())
         return None
 
 

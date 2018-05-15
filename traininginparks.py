@@ -30,6 +30,7 @@ dispatcher = updater.dispatcher
 step = 5
 
 
+
 @only_private
 def start(bot, update):
     query = get_query(bot, update)
@@ -154,12 +155,12 @@ def view_all_results(bot, update):
     categories_all = db["results_category"].find({})
     for categories in categories_all:
         for category in categories["categories"]:
-            results = db["results"].find({"category": category}, limit=5).sort("results.result", pymongo.DESCENDING)
+            results = db["results"].find({"category": category})
             if results.count() > 0:
-                bot.sendMessage(text="```" + category + "```" + "\n(Первые 5 результатов)", chat_id=query.message.chat.id)
+                bot.sendMessage(text="```" + category + "```", chat_id=query.message.chat.id)
                 for result in results:
                     for person in result["results"]:
-                        text = "{}: {} (@{})".format(person["date"], person["result"], person["user"])
+                        text = "@{}: {}".format(person["user"], person["result"])
                         bot.sendMessage(text=text, chat_id=query.message.chat.id)
     categories_all.close()
 
