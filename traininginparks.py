@@ -23,12 +23,12 @@ import activities
 
 # Set up Updater and Dispatcher
 
-updater = Updater(token=os.environ['TOKEN'])
+#updater = Updater(token=os.environ['TOKEN'])
+updater = Updater(token="370932219:AAGXeZFMAuY9vJYSt5qns274i1von1cvY4I")
 updater.stop()
 dispatcher = updater.dispatcher
 
 step = 5
-
 
 
 @only_private
@@ -539,18 +539,24 @@ def whiteboard_results(bot, update, benchmark_name):
 
 def on_user_joins(bot, update):
     query = get_query(bot, update)
+    user_list = list()
     if len(query.message.new_chat_members) > 0 and query.message.chat.type in ["group", "supergroup"]:
-        user = query.message.chat.username
-        log_client(bot, update)
         filedata = open("greeting.txt", "r")
         greeting = filedata.read()
         filedata.close()
-        bot.sendMessage(text=greeting, chat_id=query.message.from_user.id, disable_web_page_preview=True)
+        for user in query.message.new_chat_members:
+            if not user.is_bot:
+                bot.sendMessage(text=greeting, chat_id=user.id, disable_web_page_preview=True)
+                user_list.append("@{}".format(user.username))
+        if len(user_list) == 0:
+            return
+        users = ", ".join(user_list)
+        log_client(bot, update)
         bot.sendMessage(text="Ммм... Свежее мясо!", chat_id=query.message.chat.id)
         bot.sendVideo(chat_id=query.message.chat.id, video="https://media.giphy.com/media/mDKCXYwoaoM5G/giphy.mp4")
         bot.sendMessage(
-            text="@{}, рады приветстовать тебя! В нашем чате действуют правила: https://clck.ru/CVP7z".format(
-                user), chat_id=query.message.chat.id)
+            text="{}, рады приветстовать у нас! В чате действуют правила: https://clck.ru/CVP7z".format(
+                users), chat_id=query.message.chat.id)
 
 
 def text_processing(bot, update):
