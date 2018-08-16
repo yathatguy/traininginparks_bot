@@ -2,7 +2,7 @@
 
 Telegram bot to connect 'Traininginparks' team members togather and make their sport life easier!
 
-Bot available at [http://t.me/moscowtraining_bot](http://t.me/moscowtraining_bot)
+Bot available at [http://t.me/traininginparks_bot](http://t.me/traininginparks_bot)
 
 ## Functionality
 
