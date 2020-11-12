@@ -6,7 +6,7 @@ email==4.0.2
 future==0.16.0
 google-api-python-client==1.6.2
 googlemaps==2.5.0
-httplib2==0.10.3
+httplib2==0.18.0
 idna==2.5
 oauth2client==4.0.0
 packaging==16.8
