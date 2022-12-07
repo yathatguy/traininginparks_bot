@@ -1,6 +1,6 @@
 apiclient==1.0.3
 appdirs==1.4.3
-certifi==2017.4.17
+certifi==2022.12.7
 chardet==3.0.4
 email==4.0.2
 future==0.16.0
